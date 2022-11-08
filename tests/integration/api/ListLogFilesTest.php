@@ -57,9 +57,10 @@ class ListLogFileTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         $json = json_decode($response->getBody()->getContents(), true);
-
+        $data = Arr::get($json, 'data');
         $this->assertIsArray($json['data']);
-        $this->assertEquals(1, count(Arr::get($json, 'data')));
+        $this->assertEquals(1, count($data));
+
     }
 
     /**
