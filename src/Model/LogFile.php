@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
@@ -25,10 +34,10 @@ class LogFile
 
         $file->id = $fileName;
         $file->fileName = $fileName;
-        $file->fullPath = $path . DIRECTORY_SEPARATOR . $fileName;
+        $file->fullPath = $path.DIRECTORY_SEPARATOR.$fileName;
         $file->size = filesize($file->fullPath);
         $file->modified = Carbon::parse(filemtime($file->fullPath));
-        
+
         if ($withContent) {
             /** @var Formatter $formatter */
             $formatter = resolve(Formatter::class);

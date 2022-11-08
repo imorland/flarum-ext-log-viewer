@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Api\Controller;
 
 use Flarum\Api\Controller\AbstractShowController;
@@ -26,9 +35,9 @@ class ShowLogFileController extends AbstractShowController
         $fileName = Arr::get($request->getQueryParams(), 'file');
         RequestUtil::getActor($request)->assertPermission('readLogfiles');
 
-        $logDir = $this->paths->storage . '/logs';
+        $logDir = $this->paths->storage.'/logs';
 
-        if (!file_exists($logDir . DIRECTORY_SEPARATOR . $fileName)) {
+        if (! file_exists($logDir.DIRECTORY_SEPARATOR.$fileName)) {
             throw new RouteNotFoundException();
         }
 
