@@ -24,7 +24,7 @@ use Tobscure\JsonApi\Document;
 class ListLogfilesController extends AbstractListController
 {
     protected $paths;
-    
+
     public $serializer = FileListSerializer::class;
 
     public function __construct(Paths $paths)
