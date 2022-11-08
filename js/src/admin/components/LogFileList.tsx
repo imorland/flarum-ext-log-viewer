@@ -22,12 +22,10 @@ export default class LogFileList extends Component {
     }
 
     return (
-      <div>
-        <div>
-          {this.files.map((file) => {
-            return <LogFileListItem file={file} state={this.state} />;
-          })}
-        </div>
+      <div className="LogViewerPage--fileListItems">
+        {this.files.map((file) => {
+          return <LogFileListItem file={file} state={this.state} />;
+        })}
       </div>
     );
   }
