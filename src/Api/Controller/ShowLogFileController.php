@@ -25,6 +25,8 @@ class ShowLogFileController extends AbstractShowController
 {
     public $serializer = LogFileSerializer::class;
 
+    protected $paths;
+
     public function __construct(Paths $paths)
     {
         $this->paths = $paths;
