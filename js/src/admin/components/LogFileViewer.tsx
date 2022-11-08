@@ -22,7 +22,7 @@ export default class LogFileViewer extends Component {
 
     return (
       <div className="LogViewerPage--fileContent">
-        {m.trust(content)}
+        <pre>{content}</pre>
       </div>
     );
   }
