@@ -7,5 +7,5 @@ ianm-log-viewer:
       file_contents_heading: File contents
       file_size: "Size (bytes): {size}"
       last_updated: "Last updated: {updated}"
-      no_file_selected: Select a file to view it's content.
+      no_file_selected: Select a log file to view its content.
 
