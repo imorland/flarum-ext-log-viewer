@@ -27,7 +27,7 @@ class ListLogFileTest extends TestCase
     {
         parent::setUp();
 
-        //file_put_contents("$this->path/$this->filename", $this->content);
+        file_put_contents("$this->path/$this->filename", $this->content);
 
         $this->extension('ianm-log-viewer');
 
@@ -40,7 +40,7 @@ class ListLogFileTest extends TestCase
 
     public function tearDown(): void
     {
-        //unlink("$this->path/$this->filename");
+        unlink("$this->path/$this->filename");
     }
 
     /**
