@@ -18,9 +18,7 @@ export default class LogViewerPage extends ExtensionPage {
           <div className="LogViewerPage--container">
             <h3>{app.translator.trans('ianm-log-viewer.admin.viewer.file_contents_heading')}</h3>
             {/* Note to self: would be nice to show the filename here? */}
-            <div>
-              <LogFileViewer className="LogViewerPage--fileContent" state={state} />
-            </div>
+            <LogFileViewer className="LogViewerPage--fileContent" state={state} />
           </div>
         </div>
       </div>
