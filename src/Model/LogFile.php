@@ -51,7 +51,7 @@ class LogFile
         /** @var Finder $finder */
         $finder = resolve(Finder::class);
         $finder->files()->in($path)->name($fileName);
-        
+
         foreach ($finder as $file) {
             return self::build($file, $withContent);
         }
