@@ -2,6 +2,7 @@ import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import humanTime from 'flarum/common/utils/humanTime';
+import classList from 'flarum/common/utils/classList';
 import icon from 'flarum/common/helpers/icon';
 
 export default class LogFileListItem extends Component {
@@ -14,10 +15,12 @@ export default class LogFileListItem extends Component {
 
   view() {
     const file = this.file;
+    const selected = this.state?.file?.data.id === file?.data.id;
+
     return (
       <div className="LogFile-item">
         <Button
-          className="Button Button--logFile"
+          className={classList('Button Button--logFile', { active: selected })}
           onclick={() => {
             this.setFile(file.fileName());
           }}
