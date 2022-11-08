@@ -13,6 +13,7 @@ namespace IanM\LogViewer\Tests\integration\api;
 
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Illuminate\Support\Arr;
 
 class ListLogFileTest extends TestCase
 {
@@ -26,7 +27,7 @@ class ListLogFileTest extends TestCase
     {
         parent::setUp();
 
-        file_put_contents("$this->path/$this->filename", $this->content);
+        //file_put_contents("$this->path/$this->filename", $this->content);
 
         $this->extension('ianm-log-viewer');
 
@@ -39,7 +40,7 @@ class ListLogFileTest extends TestCase
 
     public function tearDown(): void
     {
-        unlink("$this->path/$this->filename");
+        //unlink("$this->path/$this->filename");
     }
 
     /**
@@ -56,6 +57,9 @@ class ListLogFileTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         $json = json_decode($response->getBody()->getContents(), true);
+
+        $this->assertIsArray($json['data']);
+        $this->assertEquals(1, count(Arr::get($json, 'data')));
     }
 
     /**
@@ -67,6 +71,18 @@ class ListLogFileTest extends TestCase
             $this->request('GET', '/api/logs', [
                 'authenticatedAs' => 2,
             ])
+        );
+
+        $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function guest_user_cannot_list_logfiles()
+    {
+        $response = $this->send(
+            $this->request('GET', '/api/logs')
         );
 
         $this->assertEquals(403, $response->getStatusCode());

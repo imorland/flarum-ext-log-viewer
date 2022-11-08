@@ -33,7 +33,7 @@ class ShowLogFileController extends AbstractShowController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $fileName = Arr::get($request->getQueryParams(), 'file');
-        RequestUtil::getActor($request)->assertPermission('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('readLogfiles');
 
         $logDir = $this->paths->storage.'/logs';
 

@@ -32,7 +32,7 @@ class ListLogfilesController extends AbstractListController
 
     protected function data(ServerRequestInterface $request, Document $document)
     {
-        RequestUtil::getActor($request)->assertPermission('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('readLogfiles');
 
         $logDir = $this->paths->storage.'/logs';
 
@@ -49,6 +49,6 @@ class ListLogfilesController extends AbstractListController
 
         return $files->sortBy(function ($object) {
             return $object->modified;
-        }, SORTDATE, true);
+        }, SORT_REGULAR, true);
     }
 }
