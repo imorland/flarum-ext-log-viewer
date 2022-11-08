@@ -25,6 +25,9 @@ class ShowLogFileController extends AbstractShowController
 {
     public $serializer = LogFileSerializer::class;
 
+    /**
+     * @var Paths
+     */
     protected $paths;
 
     public function __construct(Paths $paths)
@@ -43,6 +46,6 @@ class ShowLogFileController extends AbstractShowController
             throw new RouteNotFoundException();
         }
 
-        return LogFile::build($fileName, $logDir, true);
+        return LogFile::find($fileName, $logDir, true);
     }
 }

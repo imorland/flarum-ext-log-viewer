@@ -17,19 +17,29 @@ use Flarum\Http\RequestUtil;
 use IanM\LogViewer\Api\Serializer\FileListSerializer;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
+use SplFileInfo;
+use Symfony\Component\Finder\Finder;
 use Tobscure\JsonApi\Document;
 
 class ListLogfilesController extends AbstractListController
 {
+    /**
+     * @var Paths
+     */
     protected $paths;
+
+    /**
+     * @var Finder
+     */
+    protected $finder;
 
     public $serializer = FileListSerializer::class;
 
-    public function __construct(Paths $paths)
+    public function __construct(Paths $paths, Finder $finder)
     {
         $this->paths = $paths;
+        $this->finder = $finder;
     }
 
     protected function data(ServerRequestInterface $request, Document $document)
@@ -39,14 +49,12 @@ class ListLogfilesController extends AbstractListController
         $logDir = $this->paths->storage.'/logs';
 
         $files = new Collection();
-        if ($handle = opendir($logDir)) {
-            while (false !== ($fileName = readdir($handle))) {
-                if (Str::endsWith($fileName, '.log')) {
-                    $file = LogFile::build($fileName, $logDir);
+        $this->finder->files()->in($logDir);
+        foreach ($this->finder as $file) {
+            /** @var SplFileInfo $file */
+            $logfile = LogFile::build($file);
 
-                    $files->add($file);
-                }
-            }
+            $files->add($logfile);
         }
 
         return $files->sortBy(function ($object) {
