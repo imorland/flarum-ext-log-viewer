@@ -39,9 +39,7 @@ class LogFile
         $file->modified = Carbon::parse(filemtime($file->fullPath));
 
         if ($withContent) {
-            /** @var Formatter $formatter */
-            $formatter = resolve(Formatter::class);
-            $file->content = $formatter->parse(file_get_contents($file->fullPath));
+            $file->content = file_get_contents($file->fullPath);
         }
 
         return $file;
