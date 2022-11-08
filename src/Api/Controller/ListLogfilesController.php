@@ -19,17 +19,15 @@ use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
 use Tobscure\JsonApi\Document;
 
 class ListLogfilesController extends AbstractListController
 {
     public $serializer = FileListSerializer::class;
 
-    public function __construct(Paths $paths, LoggerInterface $logger)
+    public function __construct(Paths $paths)
     {
         $this->paths = $paths;
-        $this->logger = $logger;
     }
 
     protected function data(ServerRequestInterface $request, Document $document)

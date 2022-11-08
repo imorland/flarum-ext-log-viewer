@@ -28,6 +28,8 @@ class ListLogFileTest extends TestCase
 
         file_put_contents("$this->path/$this->filename", $this->content);
 
+        $this->extension('ianm-log-viewer');
+
         $this->prepareDatabase([
             'users' => [
                 $this->normalUser(),
@@ -67,6 +69,6 @@ class ListLogFileTest extends TestCase
             ])
         );
 
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 }
