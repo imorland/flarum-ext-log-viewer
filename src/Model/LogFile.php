@@ -12,7 +12,6 @@
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
-use Flarum\Formatter\Formatter;
 
 class LogFile
 {
