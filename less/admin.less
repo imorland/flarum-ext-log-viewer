@@ -1,0 +1,38 @@
+.LogViewerPage {
+    display: flex;
+
+    &--fileList {
+        display: inline-block;
+
+    }
+
+    &--fileContent {
+        display: inline-block;
+    }
+
+    .LogFile-item {
+        margin-bottom: 3px;
+    }
+
+    .Button--logFile {
+        .icon {
+            margin-right: 5px;
+        }
+
+        text-align: left;
+    }
+
+    .LogViewerPage--No-File,
+    .LogViewerPage--fileContent {
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 10px;
+        padding: 20px;
+        background-color: @control-bg;
+        border-radius: @border-radius;
+        border: 2px solid @primary-color;
+        font-family: source-code-pro, Monaco, Consolas, "Courier New", monospace;
+        color: @code-color;
+        line-height: 1.3;
+    }
+}
