@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Tests\unit;
 
 use Flarum\Testing\unit\TestCase;
@@ -10,11 +19,11 @@ class ModelTest extends TestCase
     public $filename = 'myFileName.txt';
     public $path = __DIR__;
     public $content = 'my_test content --here';
-    
+
     public function setUp(): void
     {
         parent::setUp();
-        
+
         file_put_contents("$this->path/$this->filename", $this->content);
     }
 
