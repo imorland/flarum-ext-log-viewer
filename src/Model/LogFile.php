@@ -12,6 +12,8 @@
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
+use SplFileInfo;
+use Symfony\Component\Finder\Finder;
 
 class LogFile
 {
@@ -27,20 +29,31 @@ class LogFile
 
     public $content;
 
-    public static function build(string $fileName, string $path, bool $withContent = false): LogFile
+    public static function build(SplFileInfo $file, bool $withContent = false): LogFile
     {
-        $file = new static();
+        $logfile = new static();
 
-        $file->id = $fileName;
-        $file->fileName = $fileName;
-        $file->fullPath = $path.DIRECTORY_SEPARATOR.$fileName;
-        $file->size = filesize($file->fullPath);
-        $file->modified = Carbon::parse(filemtime($file->fullPath));
+        $logfile->id = $file->getFilename();
+        $logfile->fileName = $file->getFilename();
+        $logfile->fullPath = $file->getRealPath();
+        $logfile->size = $file->getSize();
+        $logfile->modified = Carbon::parse($file->getMTime());
 
         if ($withContent) {
-            $file->content = file_get_contents($file->fullPath);
+            $logfile->content = file_get_contents($logfile->fullPath);
         }
 
-        return $file;
+        return $logfile;
+    }
+
+    public static function find(string $fileName, string $path, bool $withContent = false): LogFile
+    {
+        /** @var Finder $finder */
+        $finder = resolve(Finder::class);
+        $finder->files()->in($path)->name($fileName);
+
+        foreach ($finder as $file) {
+            return self::build($file, $withContent);
+        }
     }
 }

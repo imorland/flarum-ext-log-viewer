@@ -17,40 +17,48 @@ use Flarum\Http\RequestUtil;
 use IanM\LogViewer\Api\Serializer\FileListSerializer;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
+use SplFileInfo;
+use Symfony\Component\Finder\Finder;
 use Tobscure\JsonApi\Document;
 
 class ListLogfilesController extends AbstractListController
 {
+    /**
+     * @var Paths
+     */
+    protected $paths;
+
+    /**
+     * @var Finder
+     */
+    protected $finder;
+
     public $serializer = FileListSerializer::class;
 
-    public function __construct(Paths $paths, LoggerInterface $logger)
+    public function __construct(Paths $paths, Finder $finder)
     {
         $this->paths = $paths;
-        $this->logger = $logger;
+        $this->finder = $finder;
     }
 
     protected function data(ServerRequestInterface $request, Document $document)
     {
-        RequestUtil::getActor($request)->assertPermission('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('readLogfiles');
 
         $logDir = $this->paths->storage.'/logs';
 
         $files = new Collection();
-        if ($handle = opendir($logDir)) {
-            while (false !== ($fileName = readdir($handle))) {
-                if (Str::endsWith($fileName, '.log')) {
-                    $file = LogFile::build($fileName, $logDir);
+        $this->finder->files()->in($logDir);
+        foreach ($this->finder as $file) {
+            /** @var SplFileInfo $file */
+            $logfile = LogFile::build($file);
 
-                    $files->add($file);
-                }
-            }
+            $files->add($logfile);
         }
 
         return $files->sortBy(function ($object) {
             return $object->modified;
-        }, SORTDATE, true);
+        }, SORT_REGULAR, true);
     }
 }
