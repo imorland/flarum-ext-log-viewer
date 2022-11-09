@@ -13,6 +13,7 @@ Need to access the logs in order to troubleshoot a problem you're having with yo
 ## Screenshots
 
 ![log viewer](https://user-images.githubusercontent.com/16573496/200803543-ff6237ac-e029-4563-aa3d-7922e8b47dce.png)
+![log viewer mobile](https://user-images.githubusercontent.com/16573496/200811821-0712b10b-b3dd-4078-a6cf-43fb4380f5b0.png)
 
 ## API Usage
 
