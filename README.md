@@ -50,5 +50,5 @@ php flarum cache:clear
 ## Links
 
 - [Packagist](https://packagist.org/packages/ianm/log-viewer)
-- [GitHub](https://github.com/ianm/log-viewer)
-- [Discuss](https://discuss.flarum.org/d/PUT_DISCUSS_SLUG_HERE)
+- [GitHub](https://github.com/imorland/flarum-ext-log-viewer)
+- [Discuss](https://discuss.flarum.org/d/31932-flarum-log-viewer)

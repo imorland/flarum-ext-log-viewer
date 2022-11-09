@@ -6,6 +6,9 @@
     ],
     "type": "flarum-extension",
     "license": "MIT",
+    "support": {
+        "forum": "https://discuss.flarum.org/d/31932-flarum-log-viewer"
+    },
     "require": {
         "flarum/core": "^1.2.0"
     },
