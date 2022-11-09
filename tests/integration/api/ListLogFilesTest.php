@@ -20,15 +20,12 @@ class ListLogFileTest extends TestCase
     use RetrievesAuthorizedUsers;
 
     public $filename = 'myFileName.txt';
-    public $path = __DIR__;
     public $content = 'my_test content --here';
 
     public function setUp(): void
     {
         parent::setUp();
-
-        file_put_contents("$this->path/$this->filename", $this->content);
-
+        
         $this->extension('ianm-log-viewer');
 
         $this->prepareDatabase([
@@ -38,16 +35,13 @@ class ListLogFileTest extends TestCase
         ]);
     }
 
-    public function tearDown(): void
-    {
-        unlink("$this->path/$this->filename");
-    }
-
     /**
      * @test
      */
     public function authorized_user_can_list_logfiles()
     {
+        $this->app()->getContainer()->make('log')->info('hello, testing');
+        
         $response = $this->send(
             $this->request('GET', '/api/logs', [
                 'authenticatedAs' => 1,
@@ -60,6 +54,7 @@ class ListLogFileTest extends TestCase
         $data = Arr::get($json, 'data');
         $this->assertIsArray($json['data']);
         $this->assertEquals(1, count($data));
+        dd($data);
     }
 
     /**
