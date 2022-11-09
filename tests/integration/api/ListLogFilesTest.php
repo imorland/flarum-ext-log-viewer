@@ -54,7 +54,6 @@ class ListLogFileTest extends TestCase
         $data = Arr::get($json, 'data');
         $this->assertIsArray($json['data']);
         $this->assertEquals(1, count($data));
-        dd($data);
     }
 
     /**
