@@ -25,19 +25,25 @@ Once authenticated, a `GET` request can be made to `/api/logs` to list the avail
 
 To retrieve a particular file, another `GET` request should be made to `/api/logs/{filename}`
 
+## Future changes/features
+
+- Add option to download a file from the admin interface
+- Add option to delete a file from the admin interface
+- Add option automatically purge logfiles after X days/months
+- Add feature to tail new logfile content and stream this into the viewer
+
 ## Installation
 
 Install with composer:
 
 ```sh
-composer require ianm/log-viewer:"*"
+composer require ianm/log-viewer
 ```
 
 ## Updating
 
 ```sh
-composer update ianm/log-viewer:"*"
-php flarum migrate
+composer update ianm/log-viewer
 php flarum cache:clear
 ```
 
