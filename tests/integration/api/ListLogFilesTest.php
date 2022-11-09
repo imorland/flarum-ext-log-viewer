@@ -25,7 +25,7 @@ class ListLogFileTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         $this->extension('ianm-log-viewer');
 
         $this->prepareDatabase([
@@ -41,7 +41,7 @@ class ListLogFileTest extends TestCase
     public function authorized_user_can_list_logfiles()
     {
         $this->app()->getContainer()->make('log')->info('hello, testing');
-        
+
         $response = $this->send(
             $this->request('GET', '/api/logs', [
                 'authenticatedAs' => 1,
