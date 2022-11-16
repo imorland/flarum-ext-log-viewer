@@ -2,7 +2,9 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Latest Stable Version](https://img.shields.io/packagist/v/ianm/log-viewer.svg)](https://packagist.org/packages/ianm/log-viewer) [![Total Downloads](https://img.shields.io/packagist/dt/ianm/log-viewer.svg)](https://packagist.org/packages/ianm/log-viewer)
 
-A [Flarum](http://flarum.org) extension. Easily view your Flarum logfiles from within the admin interface
+![](https://extiverse.com/extension/ianm/log-viewer/open-graph-image)
+
+Easily view your Flarum logfiles from within the admin interface.
 
 This utility extension offers access to Flarum's logfiles without the need for command line access to your server. It exposes the contents of files found in the `{flarum_install_dir}/storage/logs` directly to the admin interface, or optionally via the API.
 
