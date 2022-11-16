@@ -1,13 +1,22 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Console;
 
 use Carbon\Carbon;
 use Flarum\Foundation\Paths;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Console\Command;
-use Symfony\Component\Finder\Finder;
 use SplFileInfo;
+use Symfony\Component\Finder\Finder;
 
 class CleanupLogfilesCommand extends Command
 {
@@ -44,7 +53,7 @@ class CleanupLogfilesCommand extends Command
 
         $days = $this->settings->get('ianm-log-viewer.purge-days');
 
-        if (!is_numeric($days)) {
+        if (! is_numeric($days)) {
             $days = 90;
         }
 
