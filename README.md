@@ -10,7 +10,7 @@ This is especially useful if you have either limited knowledge of `SSH` access/c
 
 Need to access the logs in order to troubleshoot a problem you're having with your forum? Simply login as an admin account and look for any trouble signs in the log viewer. Simple, just be sure to review any log snippets you share with others, as they _may_ contain sensitive data.
 
-Subject to the Flarum scheduler being active, logfiles are puraged from you `log` folder once they are more than 90 days old. A setting is provided to adjust this up/down to suit your requirements. A value of `0` will disable purging.
+Subject to the Flarum scheduler being active, logfiles are purged from you `log` folder once they are more than 90 days old. A setting is provided to adjust this up/down to suit your requirements. A value of `0` will disable purging.
 
 ## Screenshots
 
