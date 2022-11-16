@@ -51,10 +51,15 @@ class CleanupLogfilesCommand extends Command
     {
         $logDir = $this->paths->storage.'/logs';
 
-        $days = $this->settings->get('ianm-log-viewer.purge-days');
+        $days = (int) $this->settings->get('ianm-log-viewer.purge-days');
 
         if (! is_numeric($days)) {
-            $days = 90;
+            $days = 0;
+        }
+
+        if ($days === 0) {
+            // Purging is disabled
+            return;
         }
 
         $searchDate = Carbon::now()->subDays($days);

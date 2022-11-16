@@ -25,10 +25,11 @@ export default class LogViewerPage extends ExtensionPage {
               {this.buildSettingComponent({
                 setting: 'ianm-log-viewer.purge-days',
                 type: 'number',
-                min: 2,
+                min: 0,
                 max: 365,
                 required: true,
                 label: app.translator.trans('ianm-log-viewer.admin.settings.purge-days'),
+                help: app.translator.trans('ianm-log-viewer.admin.settings.purge-days-help'),
               })}
               {this.submitButton()}
             </div>
