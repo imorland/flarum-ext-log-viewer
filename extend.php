@@ -12,6 +12,7 @@
 namespace IanM\LogViewer;
 
 use Flarum\Extend;
+use Illuminate\Console\Scheduling\Event;
 
 return [
 
@@ -24,4 +25,13 @@ return [
     (new Extend\Routes('api'))
         ->get('/logs', 'logs.index', Api\Controller\ListLogfilesController::class)
         ->get('/logs/{file}', 'logs.show', Api\Controller\ShowLogFileController::class),
+
+    (new Extend\Settings())
+        ->default('ianm-log-viewer.purge-days', 90),
+
+    (new Extend\Console())
+        ->command(Console\CleanupLogfilesCommand::class)
+        ->schedule(Console\CleanupLogfilesCommand::class, function (Event $schedule) {
+            $schedule->daily();
+        }),
 ];
