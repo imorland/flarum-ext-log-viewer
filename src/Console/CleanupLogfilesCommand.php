@@ -21,7 +21,7 @@ use Symfony\Component\Finder\Finder;
 class CleanupLogfilesCommand extends Command
 {
     use LogDirectoryTrait;
-    
+
     protected $signature = 'logfiles:cleanup';
     protected $description = 'Deletes log files older than x days.';
 
@@ -44,13 +44,15 @@ class CleanupLogfilesCommand extends Command
 
         if ($purgeDays <= 0) {
             $this->info('Log file cleanup is disabled. To enable, set a positive value for ianm-log-viewer.purge-days.');
+
             return;
         }
 
         $logFiles = $this->getOldLogFiles($purgeDays);
 
-        if (!$logFiles->count()) {
+        if (! $logFiles->count()) {
             $this->info('No old log files found.');
+
             return;
         }
 
@@ -67,7 +69,7 @@ class CleanupLogfilesCommand extends Command
         $finder = new Finder();
         $finder->files()
             ->in($this->getLogDirectory($this->paths))
-            ->date('< now - ' . $purgeDays . ' days');
+            ->date('< now - '.$purgeDays.' days');
 
         return $finder;
     }
@@ -75,11 +77,11 @@ class CleanupLogfilesCommand extends Command
     protected function deleteLogFiles(Finder $logFiles, int $purgeDays): void
     {
         $count = $logFiles->count();
-        
+
         foreach ($logFiles as $file) {
             $this->filesystem->delete($file->getRealPath());
         }
 
-        $this->info($count . ' log files older than ' . $purgeDays . ' days have been deleted.');
+        $this->info($count.' log files older than '.$purgeDays.' days have been deleted.');
     }
 }

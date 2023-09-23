@@ -55,7 +55,7 @@ class LogFile
             ->in($path)
             ->name($fileName);
 
-        if (!$finder->hasResults()) {
+        if (! $finder->hasResults()) {
             throw new \RuntimeException('Log file not found.');
         }
 
