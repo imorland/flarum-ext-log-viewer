@@ -1,10 +1,18 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Tests\integration\console;
 
-use Flarum\Testing\integration\ConsoleTestCase;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Flarum\Testing\integration\ConsoleTestCase;
 
 class CleanupLogfilesCommandTest extends ConsoleTestCase
 {
@@ -85,8 +93,8 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
     protected function createLogFile(string $fileName, int $daysAgo)
     {
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
-        $logFilePath = $logDir . '/' . $fileName;
+        $logDir = $paths->storage.'/logs';
+        $logFilePath = $logDir.'/'.$fileName;
 
         // Create the log file
         file_put_contents($logFilePath, Carbon::now()->addDays($daysAgo)->toDateString());
@@ -96,11 +104,10 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         touch($logFilePath, $timestamp);
     }
 
-
     protected function cleanupLogFiles()
     {
         $paths = $this->app->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
         $finder = new \Symfony\Component\Finder\Finder();
         $finder->files()->in($logDir);
@@ -124,10 +131,10 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->runCommand($input);
 
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        $this->assertFileDoesNotExist($logDir . '/oldFile.log');
-        $this->assertFileExists($logDir . '/newFile.log');
+        $this->assertFileDoesNotExist($logDir.'/oldFile.log');
+        $this->assertFileExists($logDir.'/newFile.log');
     }
 
     /**
@@ -144,9 +151,9 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->runCommand($input);
 
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        $this->assertFileExists($logDir . '/cuspFile.log');
+        $this->assertFileExists($logDir.'/cuspFile.log');
     }
 
     /**
@@ -162,9 +169,9 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->runCommand($input);
 
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        $this->assertFileDoesNotExist($logDir . '/defaultOldFile.log');
+        $this->assertFileDoesNotExist($logDir.'/defaultOldFile.log');
     }
 
     /**
@@ -197,8 +204,8 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->runCommand($input);
 
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        $this->assertFileDoesNotExist($logDir . '/nonNumericDaysFile.log');
+        $this->assertFileDoesNotExist($logDir.'/nonNumericDaysFile.log');
     }
 }

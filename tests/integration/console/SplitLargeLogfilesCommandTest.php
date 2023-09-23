@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Tests\integration\console;
 
 use Flarum\Testing\integration\ConsoleTestCase;
@@ -40,30 +49,29 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $this->runCommand($input);
 
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        $this->assertFileExists($logDir . '/' . 'largeTest-part1.log');
-        $this->assertFileExists($logDir . '/' . 'largeTest-part2.log');
-        $this->assertFileExists($logDir . '/' . 'largeTest-part3.log');
+        $this->assertFileExists($logDir.'/'.'largeTest-part1.log');
+        $this->assertFileExists($logDir.'/'.'largeTest-part2.log');
+        $this->assertFileExists($logDir.'/'.'largeTest-part3.log');
 
         $this->cleanupLogFiles();
     }
 
-
     protected function prepareLargeLogFile()
     {
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
         // Create a large log file
         $largeContent = Str::random(($this->maxFileSize * 1024 * 1024) * 2.5);  // 2.5 times the max file size (in bytes) for testing
-        file_put_contents($logDir . '/' . $this->largeLogFileName, $largeContent);
+        file_put_contents($logDir.'/'.$this->largeLogFileName, $largeContent);
     }
 
     protected function cleanupLogFiles()
     {
         $paths = $this->app->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
         $filesToDelete = [
             'largeTest-part1.log',
@@ -72,7 +80,7 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         ];
 
         foreach ($filesToDelete as $filename) {
-            $filePath = $logDir . '/' . $filename;
+            $filePath = $logDir.'/'.$filename;
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
@@ -102,9 +110,9 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
     {
         // Create a small log file
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
         $smallContent = Str::random(1024);  // 1KB
-        file_put_contents($logDir . '/' . $this->largeLogFileName, $smallContent);
+        file_put_contents($logDir.'/'.$this->largeLogFileName, $smallContent);
 
         $input = ['command' => 'logfiles:split-large'];
         $output = $this->runCommand($input);
@@ -127,10 +135,10 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
 
         // Assert the file was split using the default 1MB size
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
-        $this->assertFileExists($logDir . '/' . 'largeTest-part1.log');
-        $this->assertFileExists($logDir . '/' . 'largeTest-part2.log');
-        $this->assertFileExists($logDir . '/' . 'largeTest-part3.log');
+        $logDir = $paths->storage.'/logs';
+        $this->assertFileExists($logDir.'/'.'largeTest-part1.log');
+        $this->assertFileExists($logDir.'/'.'largeTest-part2.log');
+        $this->assertFileExists($logDir.'/'.'largeTest-part3.log');
 
         $this->cleanupLogFiles();
     }

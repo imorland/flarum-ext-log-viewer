@@ -50,7 +50,7 @@ class CleanupLogfilesCommand extends Command
 
         $logFiles = $this->getOldLogFiles($purgeDays);
 
-        if (!$logFiles->count()) {
+        if (! $logFiles->count()) {
             $this->info('No old log files found.');
 
             return;
@@ -63,25 +63,23 @@ class CleanupLogfilesCommand extends Command
     {
         $purgeDays = $this->settings->get('ianm-log-viewer.purge-days');
 
-        if (!is_numeric($purgeDays)) {
+        if (! is_numeric($purgeDays)) {
             return 90;  // Default for non-numeric values
         }
 
-        if ((int)$purgeDays < 0) {
+        if ((int) $purgeDays < 0) {
             return -1;  // Indicate disabled cleanup for negative values
         }
 
         return (int) $purgeDays;
     }
 
-
-
     protected function getOldLogFiles(int $purgeDays): Finder
     {
         $finder = new Finder();
         $finder->files()
             ->in($this->getLogDirectory($this->paths))
-            ->date('< now - ' . $purgeDays . ' days');
+            ->date('< now - '.$purgeDays.' days');
 
         return $finder;
     }
@@ -94,6 +92,6 @@ class CleanupLogfilesCommand extends Command
             $this->filesystem->delete($file->getRealPath());
         }
 
-        $this->info($count . ' log files older than ' . $purgeDays . ' days have been deleted.');
+        $this->info($count.' log files older than '.$purgeDays.' days have been deleted.');
     }
 }

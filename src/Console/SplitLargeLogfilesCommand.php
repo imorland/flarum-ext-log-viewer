@@ -45,13 +45,15 @@ class SplitLargeLogfilesCommand extends Command
         // Check if file splitting is disabled
         if ($maxFileSize === 0) {
             $this->info('File splitting is disabled. No action taken.');
+
             return;
         }
 
         $logFiles = $this->getLargeLogFiles($maxFileSize);
 
-        if (!$logFiles->count()) {
+        if (! $logFiles->count()) {
             $this->info('No large log files found.');
+
             return;
         }
 
@@ -77,13 +79,12 @@ class SplitLargeLogfilesCommand extends Command
         return $sizeMb * 1024 * 1024;
     }
 
-
     protected function getLargeLogFiles(int $maxFileSize): Finder
     {
         $finder = new Finder();
         $finder->files()
             ->in($this->getLogDirectory($this->paths))
-            ->size('>' . $maxFileSize);
+            ->size('>'.$maxFileSize);
 
         return $finder;
     }
@@ -97,7 +98,6 @@ class SplitLargeLogfilesCommand extends Command
         $this->info('Large log files split successfully.');
     }
 
-
     protected function splitFile($file, $maxFileSize): void
     {
         $originalFilePath = $file->getRealPath();
@@ -106,27 +106,29 @@ class SplitLargeLogfilesCommand extends Command
 
         // Determine the starting part number
         $existingParts = preg_match('/-part(\\d+)$/', $baseNameWithoutExtension, $matches);
-        $partNumber = $existingParts ? (int)$matches[1] + 1 : 1;
+        $partNumber = $existingParts ? (int) $matches[1] + 1 : 1;
 
         // Open the original file for reading
         $handle = fopen($originalFilePath, 'rb');
-        if (!$handle) {
-            $this->error('Error opening file: ' . $originalFilePath);
+        if (! $handle) {
+            $this->error('Error opening file: '.$originalFilePath);
+
             return;
         }
 
         $partFiles = [];
-        while (!feof($handle)) {
-            $filename = $baseNameWithoutExtension . '-part' . $partNumber . '.' . $extension;
-            $filePath = $file->getPath() . DIRECTORY_SEPARATOR . $filename;
+        while (! feof($handle)) {
+            $filename = $baseNameWithoutExtension.'-part'.$partNumber.'.'.$extension;
+            $filePath = $file->getPath().DIRECTORY_SEPARATOR.$filename;
 
             // Read a chunk of the file
             $chunk = fread($handle, $maxFileSize);
 
             // Write the chunk to a new part file
             if (file_put_contents($filePath, $chunk) === false) {
-                $this->error('Error writing to file: ' . $filePath);
+                $this->error('Error writing to file: '.$filePath);
                 fclose($handle);
+
                 return;
             }
 
@@ -139,8 +141,8 @@ class SplitLargeLogfilesCommand extends Command
 
         // Rename the original file to become the last part (if there are multiple parts)
         if (count($partFiles) > 1) {
-            $lastPartFileName = $baseNameWithoutExtension . '-part' . ($partNumber - 1) . '.' . $extension;
-            $lastPartFilePath = $file->getPath() . DIRECTORY_SEPARATOR . $lastPartFileName;
+            $lastPartFileName = $baseNameWithoutExtension.'-part'.($partNumber - 1).'.'.$extension;
+            $lastPartFilePath = $file->getPath().DIRECTORY_SEPARATOR.$lastPartFileName;
             rename($originalFilePath, $lastPartFilePath);
         } else {
             // If there's only one part, delete the split file and keep the original

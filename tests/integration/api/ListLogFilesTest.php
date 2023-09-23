@@ -41,7 +41,7 @@ class ListLogFileTest extends TestCase
 
         // Delete any existing log files before starting
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
         $finder = new \Symfony\Component\Finder\Finder();
         $finder->files()->in($logDir);
         foreach ($finder as $file) {
