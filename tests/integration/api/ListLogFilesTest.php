@@ -43,7 +43,7 @@ class ListLogFileTest extends TestCase
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
         // check the folder exists, if not, create it
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             mkdir($logDir, 0777, true);
         }
         $finder = new \Symfony\Component\Finder\Finder();
