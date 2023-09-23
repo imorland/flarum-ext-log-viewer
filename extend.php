@@ -27,11 +27,16 @@ return [
         ->get('/logs/{file}', 'logs.show', Api\Controller\ShowLogFileController::class),
 
     (new Extend\Settings())
-        ->default('ianm-log-viewer.purge-days', 90),
+        ->default('ianm-log-viewer.purge-days', 90)
+        ->default('ianm-log-viewer.max-file-size', 1),
 
     (new Extend\Console())
         ->command(Console\CleanupLogfilesCommand::class)
+        ->command(Console\SplitLargeLogfilesCommand::class)
         ->schedule(Console\CleanupLogfilesCommand::class, function (Event $schedule) {
+            $schedule->daily();
+        })
+        ->schedule(Console\SplitLargeLogfilesCommand::class, function (Event $schedule) {
             $schedule->daily();
         }),
 ];
