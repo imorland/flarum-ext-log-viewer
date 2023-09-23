@@ -11,6 +11,7 @@
 
 namespace IanM\LogViewer\Tests\integration\api;
 
+use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 use Illuminate\Support\Arr;
@@ -28,6 +29,13 @@ class ListLogFileTest extends TestCase
         $this->prepareDatabase([
             'users' => [
                 $this->normalUser(),
+                ['id' => 3, 'username' => 'moderator', 'password' => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim', 'email' => 'moderator@machine.local', 'is_email_confirmed' => 1, 'last_seen_at' => Carbon::now()->subSecond()],
+            ],
+            'group_user' => [
+                ['group_id' => 4, 'user_id' => 3],
+            ],
+            'group_permission' => [
+                ['group_id' => 4, 'permission' => 'readLogfiles'],
             ]
         ]);
     }
@@ -41,7 +49,7 @@ class ListLogFileTest extends TestCase
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
-                'authenticatedAs' => 1,
+                'authenticatedAs' => 3
             ])
         );
 
@@ -89,7 +97,7 @@ class ListLogFileTest extends TestCase
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
-                'authenticatedAs' => 1,
+                'authenticatedAs' => 3,
             ])
         );
 
@@ -97,11 +105,11 @@ class ListLogFileTest extends TestCase
 
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
-        $logFileName = Arr::get($data[0], 'id');
+        $logFileName = Arr::get($data[0], 'attributes.fileName');
 
         $response = $this->send(
             $this->request('GET', "/api/logs/$logFileName", [
-                'authenticatedAs' => 1,
+                'authenticatedAs' => 3,
             ])
         );
 
@@ -123,7 +131,7 @@ class ListLogFileTest extends TestCase
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
-                'authenticatedAs' => 1,
+                'authenticatedAs' => 3,
             ])
         );
 

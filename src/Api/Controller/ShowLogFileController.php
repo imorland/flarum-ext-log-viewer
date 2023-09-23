@@ -16,6 +16,7 @@ use Flarum\Foundation\Paths;
 use Flarum\Http\Exception\RouteNotFoundException;
 use Flarum\Http\RequestUtil;
 use IanM\LogViewer\Api\Serializer\LogFileSerializer;
+use IanM\LogViewer\LogDirectoryTrait;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
@@ -23,6 +24,8 @@ use Tobscure\JsonApi\Document;
 
 class ShowLogFileController extends AbstractShowController
 {
+    use LogDirectoryTrait;
+
     public $serializer = LogFileSerializer::class;
 
     /**
@@ -40,7 +43,7 @@ class ShowLogFileController extends AbstractShowController
         $fileName = Arr::get($request->getQueryParams(), 'file');
         RequestUtil::getActor($request)->assertCan('readLogfiles');
 
-        $logDir = $this->paths->storage.'/logs';
+        $logDir = $this->getLogDirectory($this->paths);
 
         if (! file_exists($logDir.DIRECTORY_SEPARATOR.$fileName)) {
             throw new RouteNotFoundException();

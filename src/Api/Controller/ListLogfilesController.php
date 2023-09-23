@@ -15,6 +15,7 @@ use Flarum\Api\Controller\AbstractListController;
 use Flarum\Foundation\Paths;
 use Flarum\Http\RequestUtil;
 use IanM\LogViewer\Api\Serializer\FileListSerializer;
+use IanM\LogViewer\LogDirectoryTrait;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,6 +25,8 @@ use Tobscure\JsonApi\Document;
 
 class ListLogfilesController extends AbstractListController
 {
+    use LogDirectoryTrait;
+
     /**
      * @var Paths
      */
@@ -46,7 +49,7 @@ class ListLogfilesController extends AbstractListController
     {
         RequestUtil::getActor($request)->assertCan('readLogfiles');
 
-        $logDir = $this->paths->storage.'/logs';
+        $logDir = $this->getLogDirectory($this->paths);
 
         $files = new Collection();
         $this->finder->files()->in($logDir);

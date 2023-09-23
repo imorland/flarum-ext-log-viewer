@@ -11,85 +11,75 @@
 
 namespace IanM\LogViewer\Console;
 
-use Carbon\Carbon;
 use Flarum\Foundation\Paths;
 use Flarum\Settings\SettingsRepositoryInterface;
+use IanM\LogViewer\LogDirectoryTrait;
 use Illuminate\Console\Command;
-use SplFileInfo;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 class CleanupLogfilesCommand extends Command
 {
+    use LogDirectoryTrait;
+    
     protected $signature = 'logfiles:cleanup';
-    protected $description = 'Deletes logfiles older than {configured|90} days';
+    protected $description = 'Deletes log files older than x days.';
 
-    /**
-     * @var Paths
-     */
+    protected $settings;
+    protected $filesystem;
     protected $paths;
 
-    /**
-     * @var Finder
-     */
-    protected $finder;
-
-    /**
-     * @var SettingsRepositoryInterface
-     */
-    protected $settings;
-
-    public function __construct(Paths $paths, Finder $finder, SettingsRepositoryInterface $settings)
+    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
     {
         parent::__construct();
 
-        $this->paths = $paths;
-        $this->finder = $finder;
         $this->settings = $settings;
+        $this->filesystem = $filesystem;
+        $this->paths = $paths;
     }
 
-    public function handle(): void
+    public function handle()
     {
-        $logDir = $this->paths->storage.'/logs';
+        $purgeDays = $this->getPurgeDays();
 
-        $days = (int) $this->settings->get('ianm-log-viewer.purge-days');
-
-        if (! is_numeric($days)) {
-            $days = 0;
-        }
-
-        if ($days === 0) {
-            // Purging is disabled
+        if ($purgeDays <= 0) {
+            $this->info('Log file cleanup is disabled. To enable, set a positive value for ianm-log-viewer.purge-days.');
             return;
         }
 
-        $searchDate = Carbon::now()->subDays($days);
+        $logFiles = $this->getOldLogFiles($purgeDays);
 
-        $this->finder->files()->in($logDir)->date("< {$searchDate->toDateTimeString()}");
-
-        $this->info("Detected {$this->finder->count()} files in {$logDir} older than {$searchDate->toDateTimeString()}");
-
-        if ($this->finder->count() === 0) {
+        if (!$logFiles->count()) {
+            $this->info('No old log files found.');
             return;
         }
 
-        $this->output->progressStart($this->finder->count());
+        $this->deleteLogFiles($logFiles, $purgeDays);
+    }
 
-        $deleted = [];
+    protected function getPurgeDays(): int
+    {
+        return (int) $this->settings->get('ianm-log-viewer.purge-days', 90);
+    }
 
-        foreach ($this->finder as $file) {
-            /** @var SplFileInfo $file */
-            $path = $file->getRealPath();
-            $deleted[] = $path;
+    protected function getOldLogFiles(int $purgeDays): Finder
+    {
+        $finder = new Finder();
+        $finder->files()
+            ->in($this->getLogDirectory($this->paths))
+            ->date('< now - ' . $purgeDays . ' days');
 
-            unlink($path);
+        return $finder;
+    }
 
-            $this->output->progressAdvance();
+    protected function deleteLogFiles(Finder $logFiles, int $purgeDays): void
+    {
+        $count = $logFiles->count();
+        
+        foreach ($logFiles as $file) {
+            $this->filesystem->delete($file->getRealPath());
         }
 
-        $this->output->progressFinish();
-
-        foreach ($deleted as $path) {
-            $this->info("Deleted {$path}");
-        }
+        $this->info($count . ' log files older than ' . $purgeDays . ' days have been deleted.');
     }
 }

@@ -12,8 +12,9 @@
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
-use SplFileInfo;
+use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 class LogFile
 {
@@ -29,28 +30,34 @@ class LogFile
 
     public $content;
 
-    public static function build(SplFileInfo $file, bool $withContent = false): LogFile
+    public static function build(SplFileInfo $file, bool $withContent = false): self
     {
-        $logfile = new static();
+        $logFile = new self();
 
-        $logfile->id = $file->getFilename();
-        $logfile->fileName = $file->getFilename();
-        $logfile->fullPath = $file->getRealPath();
-        $logfile->size = $file->getSize();
-        $logfile->modified = Carbon::parse($file->getMTime());
+        $logFile->id = Str::slug($file->getFilename());
+        $logFile->fileName = $file->getFilename();
+        $logFile->fullPath = $file->getRealPath();
+        $logFile->size = $file->getSize();
+        $logFile->modified = Carbon::parse($file->getMTime());
 
         if ($withContent) {
-            $logfile->content = file_get_contents($logfile->fullPath);
+            $logFile->content = $file->getContents();
         }
 
-        return $logfile;
+        return $logFile;
     }
 
-    public static function find(string $fileName, string $path, bool $withContent = false): LogFile
+    public static function find(string $fileName, string $path, bool $withContent = false): self
     {
         /** @var Finder $finder */
         $finder = resolve(Finder::class);
-        $finder->files()->in($path)->name($fileName);
+        $finder->files()
+            ->in($path)
+            ->name($fileName);
+
+        if (!$finder->hasResults()) {
+            throw new \RuntimeException('Log file not found.');
+        }
 
         foreach ($finder as $file) {
             return self::build($file, $withContent);
