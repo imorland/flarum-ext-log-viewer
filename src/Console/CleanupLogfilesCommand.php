@@ -61,7 +61,17 @@ class CleanupLogfilesCommand extends Command
 
     protected function getPurgeDays(): int
     {
-        return (int) $this->settings->get('ianm-log-viewer.purge-days', 90);
+        $purgeDays = $this->settings->get('ianm-log-viewer.purge-days');
+
+        if (! is_numeric($purgeDays)) {
+            return 90;  // Default for non-numeric values
+        }
+
+        if ((int) $purgeDays < 0) {
+            return -1;  // Indicate disabled cleanup for negative values
+        }
+
+        return (int) $purgeDays;
     }
 
     protected function getOldLogFiles(int $purgeDays): Finder

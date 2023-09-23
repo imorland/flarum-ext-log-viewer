@@ -38,6 +38,19 @@ class ListLogFileTest extends TestCase
                 ['group_id' => 4, 'permission' => 'readLogfiles'],
             ]
         ]);
+
+        // Delete any existing log files before starting
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        // check the folder exists, if not, create it
+        if (! is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+        $finder = new \Symfony\Component\Finder\Finder();
+        $finder->files()->in($logDir);
+        foreach ($finder as $file) {
+            unlink($file->getRealPath());
+        }
     }
 
     /**

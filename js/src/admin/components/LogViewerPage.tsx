@@ -31,6 +31,15 @@ export default class LogViewerPage extends ExtensionPage {
                 label: app.translator.trans('ianm-log-viewer.admin.settings.purge-days'),
                 help: app.translator.trans('ianm-log-viewer.admin.settings.purge-days-help'),
               })}
+              {this.buildSettingComponent({
+                setting: 'ianm-log-viewer.max-file-size',
+                type: 'number',
+                min: 0,
+                max: 100,
+                required: true,
+                label: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size'),
+                help: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size-help'),
+              })}
               {this.submitButton()}
             </div>
           </div>
