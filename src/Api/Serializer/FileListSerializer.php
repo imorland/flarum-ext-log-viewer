@@ -35,13 +35,13 @@ class FileListSerializer extends AbstractSerializer
         if ($bytes === 0) {
             return '0 Byte';
         }
-    
+
         $k = 1024;
         $dm = $decimals < 0 ? 0 : $decimals;
         $sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-        
+
         $i = floor(log($bytes, $k));
-    
-        return number_format($bytes / pow($k, $i), $dm) . ' ' . $sizes[$i];
+
+        return number_format($bytes / pow($k, $i), $dm).' '.$sizes[$i];
     }
 }

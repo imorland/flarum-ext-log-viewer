@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Api\Controller;
 
 use Flarum\Foundation\Paths;
@@ -24,7 +33,7 @@ class DeleteLogFileController implements RequestHandlerInterface
     {
         $this->paths = $paths;
     }
-    
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         RequestUtil::getActor($request)->assertCan('deleteLogfiles');
@@ -35,14 +44,14 @@ class DeleteLogFileController implements RequestHandlerInterface
         $fileName = basename($fileName);
 
         $logDir = $this->getLogDirectoryOrThrow($request, $this->paths);
-        $absoluteFilePath = $logDir . DIRECTORY_SEPARATOR . $fileName;
+        $absoluteFilePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
 
         // Ensure the resulting path is still within the log directory
         if (strpos($absoluteFilePath, $logDir) !== 0) {
-            throw new \RuntimeException("Invalid file path");
+            throw new \RuntimeException('Invalid file path');
         }
 
-        if (!file_exists($absoluteFilePath)) {
+        if (! file_exists($absoluteFilePath)) {
             throw new ModelNotFoundException();
         }
 

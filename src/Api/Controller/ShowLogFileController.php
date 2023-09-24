@@ -40,7 +40,7 @@ class ShowLogFileController extends AbstractShowController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $fileName = Arr::get($request->getQueryParams(), 'file');
-        
+
         // Sanitize the filename to prevent directory traversal
         $fileName = basename($fileName);
 
@@ -51,7 +51,7 @@ class ShowLogFileController extends AbstractShowController
 
         // Ensure the resulting path is still within the log directory
         if (strpos($absoluteFilePath, $logDir) !== 0) {
-            throw new \RuntimeException("Invalid file path");
+            throw new \RuntimeException('Invalid file path');
         }
 
         if (! file_exists($absoluteFilePath)) {

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Api\Controller;
 
 use Flarum\Foundation\Paths;
@@ -29,9 +38,9 @@ class DownloadLogFileController implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         RequestUtil::getActor($request)->assertCan('readLogfiles');
-                
+
         $fileName = Arr::get($request->getQueryParams(), 'file');
-        
+
         // Sanitize the filename to prevent directory traversal
         $fileName = basename($fileName);
 
@@ -40,7 +49,7 @@ class DownloadLogFileController implements RequestHandlerInterface
 
         // Ensure the resulting path is still within the log directory
         if (strpos($absoluteFilePath, $logDir) !== 0) {
-            throw new \RuntimeException("Invalid file path");
+            throw new \RuntimeException('Invalid file path');
         }
 
         if (! file_exists($absoluteFilePath)) {
@@ -51,7 +60,7 @@ class DownloadLogFileController implements RequestHandlerInterface
 
         return (new Response())
             ->withHeader('Content-Type', 'text/plain')
-            ->withHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+            ->withHeader('Content-Disposition', 'attachment; filename="'.$fileName.'"')
             ->withBody($fileStream);
     }
 }

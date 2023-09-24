@@ -48,9 +48,9 @@ class LogFilesTest extends TestCase
     private function clearLogFiles()
     {
         $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage . '/logs';
+        $logDir = $paths->storage.'/logs';
 
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             mkdir($logDir, 0777, true);
         }
 
@@ -72,6 +72,7 @@ class LogFilesTest extends TestCase
         );
 
         $json = json_decode($response->getBody()->getContents(), true);
+
         return Arr::get($json, 'data.0.attributes.fileName');
     }
 
@@ -288,7 +289,7 @@ class LogFilesTest extends TestCase
     public function cannot_download_nonexistent_logfile()
     {
         $response = $this->send(
-            $this->request('GET', "/api/logs/download/idontexist.log", [
+            $this->request('GET', '/api/logs/download/idontexist.log', [
                 'authenticatedAs' => 3,
             ])
         );
@@ -302,7 +303,7 @@ class LogFilesTest extends TestCase
     public function cannot_delete_nonexistent_logfile()
     {
         $response = $this->send(
-            $this->request('DELETE', "/api/logs/idontexist.log", [
+            $this->request('DELETE', '/api/logs/idontexist.log', [
                 'authenticatedAs' => 3,
             ])
         );
