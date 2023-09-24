@@ -11,21 +11,18 @@
 
 namespace IanM\LogViewer\Api\Controller;
 
-use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Foundation\Paths;
-use Flarum\Http\Exception\RouteNotFoundException;
 use Flarum\Http\RequestUtil;
-use IanM\LogViewer\Api\Serializer\LogFileSerializer;
-use IanM\LogViewer\Model\LogFile;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\EmptyResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class ShowLogFileController extends AbstractShowController
+class DeleteLogFileController implements RequestHandlerInterface
 {
     use LogFileDirectory;
-
-    public $serializer = LogFileSerializer::class;
 
     /**
      * @var Paths
@@ -37,14 +34,14 @@ class ShowLogFileController extends AbstractShowController
         $this->paths = $paths;
     }
 
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        RequestUtil::getActor($request)->assertCan('deleteLogfiles');
+
         $fileName = Arr::get($request->getQueryParams(), 'file');
 
         // Sanitize the filename to prevent directory traversal
         $fileName = basename($fileName);
-
-        RequestUtil::getActor($request)->assertCan('readLogfiles');
 
         $logDir = $this->getLogDirectoryOrThrow($request, $this->paths);
         $absoluteFilePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
@@ -55,9 +52,11 @@ class ShowLogFileController extends AbstractShowController
         }
 
         if (! file_exists($absoluteFilePath)) {
-            throw new RouteNotFoundException();
+            throw new ModelNotFoundException();
         }
 
-        return LogFile::find($fileName, $logDir, true);
+        unlink($absoluteFilePath);
+
+        return new EmptyResponse(204);
     }
 }

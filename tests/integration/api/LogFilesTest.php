@@ -15,8 +15,9 @@ use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 use Illuminate\Support\Arr;
+use Psr\Http\Message\ResponseInterface;
 
-class ListLogFileTest extends TestCase
+class LogFilesTest extends TestCase
 {
     use RetrievesAuthorizedUsers;
 
@@ -36,16 +37,23 @@ class ListLogFileTest extends TestCase
             ],
             'group_permission' => [
                 ['group_id' => 4, 'permission' => 'readLogfiles'],
+                ['group_id' => 4, 'permission' => 'deleteLogfiles']
             ]
         ]);
 
         // Delete any existing log files before starting
+        $this->clearLogFiles();
+    }
+
+    private function clearLogFiles()
+    {
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
-        // check the folder exists, if not, create it
+
         if (! is_dir($logDir)) {
             mkdir($logDir, 0777, true);
         }
+
         $finder = new \Symfony\Component\Finder\Finder();
         $finder->files()->in($logDir);
         foreach ($finder as $file) {
@@ -53,12 +61,40 @@ class ListLogFileTest extends TestCase
         }
     }
 
+    private function createLogEntryAndGetFileName(string $content): string
+    {
+        $this->logInfoContent($content);
+
+        $response = $this->send(
+            $this->request('GET', '/api/logs', [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $json = json_decode($response->getBody()->getContents(), true);
+
+        return Arr::get($json, 'data.0.attributes.fileName');
+    }
+
+    private function logInfoContent(string $string): void
+    {
+        $this->app()->getContainer()->make('log')->info($string);
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getContents(ResponseInterface $response)
+    {
+        return json_decode($response->getBody()->getContents(), true);
+    }
+
     /**
      * @test
      */
     public function authorized_user_can_list_logfiles()
     {
-        $this->app()->getContainer()->make('log')->info('hello, testing');
+        $this->logInfoContent('hello, testing');
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
@@ -68,11 +104,11 @@ class ListLogFileTest extends TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
 
-        $json = json_decode($response->getBody()->getContents(), true);
+        $json = $this->getContents($response);
         $data = Arr::get($json, 'data');
         $this->assertIsArray($json['data']);
         $this->assertEquals(1, count($data));
-        $this->assertEquals('logs', Arr::get($data[0], 'type'));
+        $this->assertEquals('log', Arr::get($data[0], 'type'));
     }
 
     /**
@@ -106,7 +142,7 @@ class ListLogFileTest extends TestCase
      */
     public function authorized_user_can_get_logfile()
     {
-        $this->app()->getContainer()->make('log')->info('my !!!content');
+        $this->logInfoContent('my !!!content');
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
@@ -116,7 +152,7 @@ class ListLogFileTest extends TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
 
-        $json = json_decode($response->getBody()->getContents(), true);
+        $json = $this->getContents($response);
         $data = Arr::get($json, 'data');
         $logFileName = Arr::get($data[0], 'attributes.fileName');
 
@@ -127,11 +163,11 @@ class ListLogFileTest extends TestCase
         );
 
         $this->assertEquals(200, $response->getStatusCode());
-        $json = json_decode($response->getBody()->getContents(), true);
+        $json = $this->getContents($response);
         $data = Arr::get($json, 'data');
 
         $this->assertIsArray($json['data']);
-        $this->assertEquals('logs', Arr::get($data, 'type'));
+        $this->assertEquals('log', Arr::get($data, 'type'));
         $this->assertStringContainsString('my !!!content', $data['attributes']['content']);
     }
 
@@ -140,7 +176,7 @@ class ListLogFileTest extends TestCase
      */
     public function unauthorized_user_cannot_get_logfile()
     {
-        $this->app()->getContainer()->make('log')->info('my !!!content');
+        $this->logInfoContent('my !!!content');
 
         $response = $this->send(
             $this->request('GET', '/api/logs', [
@@ -150,7 +186,7 @@ class ListLogFileTest extends TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
 
-        $json = json_decode($response->getBody()->getContents(), true);
+        $json = $this->getContents($response);
         $data = Arr::get($json, 'data');
         $logFileName = Arr::get($data[0], 'id');
 
@@ -175,5 +211,106 @@ class ListLogFileTest extends TestCase
         );
 
         $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_download_logfile()
+    {
+        $logFileName = $this->createLogEntryAndGetFileName('content for download');
+
+        $response = $this->send(
+            $this->request('GET', "/api/logs/download/$logFileName", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertStringContainsString('content for download', $response->getBody()->getContents());
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_delete_logfile()
+    {
+        $logFileName = $this->createLogEntryAndGetFileName('content for delete');
+
+        $response = $this->send(
+            $this->request('DELETE', "/api/logs/$logFileName", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // Check the file is indeed deleted
+        $response = $this->send(
+            $this->request('GET', "/api/logs/$logFileName", [
+                'authenticatedAs' => 3,
+            ])
+        );
+        $this->assertEquals(404, $response->getStatusCode()); // Not found
+    }
+
+    /**
+     * @test
+     */
+    public function unauthorized_user_cannot_download_logfile()
+    {
+        $logFileName = $this->createLogEntryAndGetFileName('content');
+
+        $response = $this->send(
+            $this->request('GET', "/api/logs/download/$logFileName", [
+                'authenticatedAs' => 2,
+            ])
+        );
+
+        $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function unauthorized_user_cannot_delete_logfile()
+    {
+        $logFileName = $this->createLogEntryAndGetFileName('content');
+
+        $response = $this->send(
+            $this->request('DELETE', "/api/logs/$logFileName", [
+                'authenticatedAs' => 2,
+            ])
+        );
+
+        $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_download_nonexistent_logfile()
+    {
+        $response = $this->send(
+            $this->request('GET', '/api/logs/download/idontexist.log', [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_delete_nonexistent_logfile()
+    {
+        $response = $this->send(
+            $this->request('DELETE', '/api/logs/idontexist.log', [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(404, $response->getStatusCode());
     }
 }
