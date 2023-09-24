@@ -81,7 +81,10 @@ class LogFilesTest extends TestCase
         $this->app()->getContainer()->make('log')->info($string);
     }
 
-    private function getContents(ResponseInterface $response): mixed
+    /**
+     * @return mixed
+     */
+    private function getContents(ResponseInterface $response)
     {
         return json_decode($response->getBody()->getContents(), true);
     }
