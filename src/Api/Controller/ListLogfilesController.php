@@ -25,17 +25,14 @@ use Tobscure\JsonApi\Document;
 
 class ListLogfilesController extends AbstractListController
 {
-    use LogDirectoryTrait;
-
-    /**
-     * @var Paths
-     */
-    protected $paths;
-
+    use LogFileDirectory;
+    
     /**
      * @var Finder
      */
     protected $finder;
+
+    protected $paths;
 
     public $serializer = FileListSerializer::class;
 
@@ -49,7 +46,7 @@ class ListLogfilesController extends AbstractListController
     {
         RequestUtil::getActor($request)->assertCan('readLogfiles');
 
-        $logDir = $this->getLogDirectory($this->paths);
+        $logDir = $this->getLogDirectoryOrThrow($request, $this->paths);
 
         $files = new Collection();
         $this->finder->files()->in($logDir);

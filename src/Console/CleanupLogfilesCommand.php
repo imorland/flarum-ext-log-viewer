@@ -13,14 +13,14 @@ namespace IanM\LogViewer\Console;
 
 use Flarum\Foundation\Paths;
 use Flarum\Settings\SettingsRepositoryInterface;
-use IanM\LogViewer\LogDirectoryTrait;
+use IanM\LogViewer\Api\Controller\LogFileDirectory;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 class CleanupLogfilesCommand extends Command
 {
-    use LogDirectoryTrait;
+    use LogFileDirectory;
 
     protected $signature = 'logfiles:cleanup';
     protected $description = 'Deletes log files older than x days.';
@@ -28,14 +28,16 @@ class CleanupLogfilesCommand extends Command
     protected $settings;
     protected $filesystem;
     protected $paths;
+    protected $finder;
 
-    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
+    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths, Finder $finder)
     {
         parent::__construct();
 
         $this->settings = $settings;
         $this->filesystem = $filesystem;
         $this->paths = $paths;
+        $this->finder = $finder;
     }
 
     public function handle()
@@ -76,12 +78,11 @@ class CleanupLogfilesCommand extends Command
 
     protected function getOldLogFiles(int $purgeDays): Finder
     {
-        $finder = new Finder();
-        $finder->files()
+        $this->finder->files()
             ->in($this->getLogDirectory($this->paths))
             ->date('< now - '.$purgeDays.' days');
 
-        return $finder;
+        return $this->finder;
     }
 
     protected function deleteLogFiles(Finder $logFiles, int $purgeDays): void

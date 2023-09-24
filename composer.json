@@ -7,10 +7,12 @@
     "type": "flarum-extension",
     "license": "MIT",
     "support": {
-        "forum": "https://discuss.flarum.org/d/31932-flarum-log-viewer"
+        "forum": "https://discuss.flarum.org/d/31932-flarum-log-viewer",
+        "source": "https://github.com/imorland/flarum-ext-log-viewer",
+        "issues": "https://github.com/imorland/flarum-ext-log-viewer/issues"
     },
     "require": {
-        "flarum/core": "^1.2.0"
+        "flarum/core": "^1.8.2"
     },
     "authors": [
         {
@@ -29,9 +31,9 @@
             "title": "Log Viewer",
             "category": "feature",
             "icon": {
-                "name": "far fa-file-alt",
-                "color": "#0072e3",
-                "backgroundColor": "#fff"
+                "name": "fas fa-file-alt",
+                "color": "#fff",
+                "backgroundColor": "#0072e3"
             }
         },
         "flarum-cli": {

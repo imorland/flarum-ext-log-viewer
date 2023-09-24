@@ -13,14 +13,14 @@ namespace IanM\LogViewer\Console;
 
 use Flarum\Foundation\Paths;
 use Flarum\Settings\SettingsRepositoryInterface;
-use IanM\LogViewer\LogDirectoryTrait;
+use IanM\LogViewer\Api\Controller\LogFileDirectory;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
 class SplitLargeLogfilesCommand extends Command
 {
-    use LogDirectoryTrait;
+    use LogFileDirectory;
 
     protected $signature = 'logfiles:split-large';
     protected $description = 'Splits log files larger than a configured size.';
@@ -28,14 +28,16 @@ class SplitLargeLogfilesCommand extends Command
     protected $settings;
     protected $filesystem;
     protected $paths;
+    protected $finder;
 
-    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
+    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths, Finder $finder)
     {
         parent::__construct();
 
         $this->settings = $settings;
         $this->filesystem = $filesystem;
         $this->paths = $paths;
+        $this->finder = $finder;
     }
 
     public function handle()
@@ -81,12 +83,11 @@ class SplitLargeLogfilesCommand extends Command
 
     protected function getLargeLogFiles(int $maxFileSize): Finder
     {
-        $finder = new Finder();
-        $finder->files()
+        $this->finder->files()
             ->in($this->getLogDirectory($this->paths))
             ->size('>'.$maxFileSize);
 
-        return $finder;
+        return $this->finder;
     }
 
     protected function splitLargeFiles(Finder $logFiles, int $maxFileSize): void
