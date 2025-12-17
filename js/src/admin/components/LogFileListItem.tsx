@@ -1,23 +1,36 @@
 import app from 'flarum/admin/app';
-import Component from 'flarum/common/Component';
+import Component, { ComponentAttrs } from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import humanTime from 'flarum/common/utils/humanTime';
 import classList from 'flarum/common/utils/classList';
 import Icon from 'flarum/common/components/Icon';
 import Tooltip from 'flarum/common/components/Tooltip';
+import type Mithril from 'mithril';
+import LogFileState from '../state/LogFileState';
+import LogFile from '../models/LogFile';
 
-export default class LogFileListItem extends Component {
-  oninit(vnode) {
+interface LogFileListItemAttrs extends ComponentAttrs {
+  file: LogFile;
+  state: LogFileState;
+}
+
+export default class LogFileListItem extends Component<LogFileListItemAttrs> {
+  file!: LogFile;
+  logState!: LogFileState;
+  loading!: boolean;
+
+  oninit(vnode: Mithril.Vnode<LogFileListItemAttrs, this>) {
     super.oninit(vnode);
 
     this.file = this.attrs.file;
-    this.state = this.attrs.state;
+    this.logState = this.attrs.state;
     this.loading = false;
   }
 
   view() {
     const file = this.file;
-    const selected = this.state?.file?.data.id === file?.data.id;
+    const currentFileName = this.logState?.file?.data?.attributes?.fileName;
+    const selected = currentFileName === file.fileName();
 
     return (
       <div className="LogFile-item">
@@ -60,16 +73,16 @@ export default class LogFileListItem extends Component {
   }
 
   setFile(fileName: string) {
-    this.state.loadLogFile(fileName);
+    this.logState.loadLogFile(fileName);
   }
 
   downloadFile(fileName: string) {
-    this.state.downloadFile(fileName);
+    this.logState.downloadFile(fileName);
   }
 
   deleteFile(fileName: string) {
     this.loading = true;
-    this.state.deleteFile(fileName).then(() => {
+    this.logState.deleteFile(fileName).then(() => {
       this.loading = false;
       m.redraw();
     });

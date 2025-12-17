@@ -1,20 +1,30 @@
 import app from 'flarum/admin/app';
-import Component from 'flarum/common/Component';
+import Component, { ComponentAttrs } from 'flarum/common/Component';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import type Mithril from 'mithril';
 import LogFileListItem from './LogFileListItem';
+import LogFileState from '../state/LogFileState';
+import LogFile from '../models/LogFile';
 
-export default class LogFileList extends Component {
-  oninit(vnode) {
+interface LogFileListAttrs extends ComponentAttrs {
+  state: LogFileState;
+}
+
+export default class LogFileList extends Component<LogFileListAttrs> {
+  loading!: boolean;
+  files!: LogFile[];
+  logState!: LogFileState;
+
+  oninit(vnode: Mithril.Vnode<LogFileListAttrs, this>) {
     super.oninit(vnode);
 
     this.loading = true;
     this.files = [];
 
-    this.state = this.attrs.state;
+    this.logState = this.attrs.state;
 
-    // Register refresh callback with the state
-    this.state.setRefreshCallback(() => this.refresh());
+    // Register refresh callback with the logState
+    this.logState.setRefreshCallback(() => this.refresh());
 
     this.refresh();
   }
@@ -27,13 +37,13 @@ export default class LogFileList extends Component {
     return (
       <div className="LogViewerPage--fileListItems">
         {this.files.map((file) => {
-          return <LogFileListItem file={file} state={this.state} />;
+          return <LogFileListItem file={file} state={this.logState} />;
         })}
       </div>
     );
   }
 
-  refresh(clear = true) {
+  refresh(clear: boolean = true) {
     if (clear) {
       this.loading = true;
       this.files = [];
@@ -46,8 +56,8 @@ export default class LogFileList extends Component {
     return app.store.find('logs');
   }
 
-  parseResults(results) {
-    this.files.push(...results);
+  parseResults(results: any) {
+    this.files.push(...(Array.isArray(results) ? results : [results]));
 
     this.loading = false;
 

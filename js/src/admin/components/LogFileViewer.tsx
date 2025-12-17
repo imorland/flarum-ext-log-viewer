@@ -1,15 +1,23 @@
 import app from 'flarum/admin/app';
-import Component from 'flarum/common/Component';
+import Component, { ComponentAttrs } from 'flarum/common/Component';
+import type Mithril from 'mithril';
+import LogFileState from '../state/LogFileState';
 
-export default class LogFileViewer extends Component {
-  oninit(vnode) {
+interface LogFileViewerAttrs extends ComponentAttrs {
+  state: LogFileState;
+}
+
+export default class LogFileViewer extends Component<LogFileViewerAttrs> {
+  logState!: LogFileState;
+
+  oninit(vnode: Mithril.Vnode<LogFileViewerAttrs, this>) {
     super.oninit(vnode);
 
-    this.state = this.attrs.state;
+    this.logState = this.attrs.state;
   }
 
   view() {
-    if (!this.state.getFile?.()) {
+    if (!this.logState.getFile?.()) {
       return (
         <div className="LogViewerPage--No-File">
           <p>{app.translator.trans('ianm-log-viewer.admin.viewer.no_file_selected')}</p>
@@ -17,7 +25,7 @@ export default class LogFileViewer extends Component {
       );
     }
 
-    const file = this.state.getFile();
+    const file = this.logState.getFile();
     const content = file['data']['attributes']['content'];
 
     return (
