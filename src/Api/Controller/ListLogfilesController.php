@@ -26,22 +26,10 @@ class ListLogfilesController extends AbstractListController
 {
     use LogDirectoryTrait;
 
-    /**
-     * @var Paths
-     */
-    protected $paths;
-
-    /**
-     * @var Finder
-     */
-    protected $finder;
-
     public $serializer = FileListSerializer::class;
 
-    public function __construct(Paths $paths, Finder $finder)
+    public function __construct(protected Paths $paths, protected Finder $finder)
     {
-        $this->paths = $paths;
-        $this->finder = $finder;
     }
 
     protected function data(ServerRequestInterface $request, Document $document)

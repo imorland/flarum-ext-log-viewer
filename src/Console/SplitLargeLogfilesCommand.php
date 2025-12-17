@@ -25,17 +25,9 @@ class SplitLargeLogfilesCommand extends Command
     protected $signature = 'logfiles:split-large';
     protected $description = 'Splits log files larger than a configured size.';
 
-    protected $settings;
-    protected $filesystem;
-    protected $paths;
-
-    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
+    public function __construct(protected SettingsRepositoryInterface $settings, protected Filesystem $filesystem, protected Paths $paths)
     {
         parent::__construct();
-
-        $this->settings = $settings;
-        $this->filesystem = $filesystem;
-        $this->paths = $paths;
     }
 
     public function handle()

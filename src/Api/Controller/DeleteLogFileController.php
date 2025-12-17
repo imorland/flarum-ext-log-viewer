@@ -25,14 +25,8 @@ class DeleteLogFileController implements RequestHandlerInterface
 {
     use LogDirectoryTrait;
 
-    /**
-     * @var Paths
-     */
-    protected $paths;
-
-    public function __construct(Paths $paths)
+    public function __construct(protected Paths $paths)
     {
-        $this->paths = $paths;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
