@@ -176,4 +176,78 @@ class ListLogFileTest extends TestCase
 
         $this->assertEquals(403, $response->getStatusCode());
     }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_get_logfile_with_malformed_utf8()
+    {
+        // Create a log file with malformed UTF-8 characters
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        $testLogFile = $logDir.'/test-malformed-utf8.log';
+
+        // Write content with invalid UTF-8 byte sequences
+        // \xFF is invalid in UTF-8, as are other sequences like \x80-\xBF without proper leading bytes
+        $malformedContent = "Valid UTF-8 line\n";
+        $malformedContent .= "Line with invalid UTF-8: \xFF\xFE\x80\x81\n";
+        $malformedContent .= "Another valid line\n";
+        $malformedContent .= "Mixed content: Hello \xC0\xAF World\n";
+
+        file_put_contents($testLogFile, $malformedContent);
+
+        // List log files to get the file name
+        $response = $this->send(
+            $this->request('GET', '/api/logs', [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $json = json_decode($response->getBody()->getContents(), true);
+        $data = Arr::get($json, 'data');
+
+        // Find our test log file
+        $testLog = null;
+        foreach ($data as $log) {
+            if (Arr::get($log, 'attributes.fileName') === 'test-malformed-utf8.log') {
+                $testLog = $log;
+                break;
+            }
+        }
+
+        $this->assertNotNull($testLog, 'Test log file should be found in the list');
+
+        // Now fetch the log file content - this should NOT throw a JSON encoding exception
+        $logFileName = Arr::get($testLog, 'attributes.fileName');
+        $response = $this->send(
+            $this->request('GET', "/api/logs/$logFileName", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        // Should successfully return 200, not 500 with JSON encoding error
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $json = json_decode($response->getBody()->getContents(), true);
+        $data = Arr::get($json, 'data');
+
+        // Verify we got the content back
+        $this->assertIsArray($json['data']);
+        $this->assertEquals('logs', Arr::get($data, 'type'));
+
+        $content = $data['attributes']['content'];
+
+        // The content should contain the valid parts
+        $this->assertStringContainsString('Valid UTF-8 line', $content);
+        $this->assertStringContainsString('Another valid line', $content);
+
+        // The malformed UTF-8 sequences should be replaced with replacement characters
+        // and the response should be valid JSON (which we've already verified by decoding it)
+        $this->assertNotEmpty($content);
+
+        // Clean up
+        unlink($testLogFile);
+    }
 }

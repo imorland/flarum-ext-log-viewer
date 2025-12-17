@@ -41,7 +41,10 @@ class LogFile
         $logFile->modified = Carbon::createFromTimestamp($file->getMTime());
 
         if ($withContent) {
-            $logFile->content = $file->getContents();
+            $content = $file->getContents();
+            // Ensure content is valid UTF-8 for JSON encoding
+            // Replace invalid UTF-8 sequences with the Unicode replacement character
+            $logFile->content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
         }
 
         return $logFile;
