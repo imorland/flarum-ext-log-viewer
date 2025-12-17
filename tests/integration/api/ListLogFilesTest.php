@@ -14,9 +14,11 @@ namespace IanM\LogViewer\Tests\integration\api;
 use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Flarum\User\User;
 use Illuminate\Support\Arr;
+use PHPUnit\Framework\Attributes\Test;
 
-class ListLogFileTest extends TestCase
+class ListLogFilesTest extends TestCase
 {
     use RetrievesAuthorizedUsers;
 
@@ -27,7 +29,7 @@ class ListLogFileTest extends TestCase
         $this->extension('ianm-log-viewer');
 
         $this->prepareDatabase([
-            'users' => [
+            User::class => [
                 $this->normalUser(),
                 ['id' => 3, 'username' => 'moderator', 'password' => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim', 'email' => 'moderator@machine.local', 'is_email_confirmed' => 1, 'last_seen_at' => Carbon::now()->subSecond()],
             ],
@@ -53,9 +55,7 @@ class ListLogFileTest extends TestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function authorized_user_can_list_logfiles()
     {
         $this->app()->getContainer()->make('log')->info('hello, testing');
@@ -75,9 +75,7 @@ class ListLogFileTest extends TestCase
         $this->assertEquals('logs', Arr::get($data[0], 'type'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function normal_user_cannot_list_logfiles()
     {
         $response = $this->send(
@@ -89,21 +87,17 @@ class ListLogFileTest extends TestCase
         $this->assertEquals(403, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function guest_user_cannot_list_logfiles()
     {
         $response = $this->send(
             $this->request('GET', '/api/logs')
         );
 
-        $this->assertEquals(403, $response->getStatusCode());
+        $this->assertEquals(401, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function authorized_user_can_get_logfile()
     {
         $this->app()->getContainer()->make('log')->info('my !!!content');
@@ -135,9 +129,7 @@ class ListLogFileTest extends TestCase
         $this->assertStringContainsString('my !!!content', $data['attributes']['content']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unauthorized_user_cannot_get_logfile()
     {
         $this->app()->getContainer()->make('log')->info('my !!!content');
@@ -163,9 +155,7 @@ class ListLogFileTest extends TestCase
         $this->assertEquals(403, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unauthorized_user_cannot_get_logfile_not_existing()
     {
         $response = $this->send(
@@ -177,9 +167,7 @@ class ListLogFileTest extends TestCase
         $this->assertEquals(403, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function authorized_user_can_get_logfile_with_malformed_utf8()
     {
         // Create a log file with malformed UTF-8 characters
@@ -251,9 +239,7 @@ class ListLogFileTest extends TestCase
         unlink($testLogFile);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function authorized_user_can_download_logfile()
     {
         $this->app()->getContainer()->make('log')->info('Download test content');
@@ -274,7 +260,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -287,9 +273,7 @@ class ListLogFileTest extends TestCase
         $this->assertStringContainsString('Download test content', $body);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unauthorized_user_cannot_download_logfile()
     {
         $this->app()->getContainer()->make('log')->info('Test content');
@@ -308,29 +292,25 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function download_nonexistent_file_returns_404()
     {
         $response = $this->send(
             $this->request('GET', '/api/logs/download/nonexistent.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function authorized_user_can_delete_logfile()
     {
         // Create a test log file
@@ -345,16 +325,14 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/test-delete.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'test-delete.log'])
+            ])
         );
 
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertFalse(file_exists($testLogFile));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function unauthorized_user_cannot_delete_logfile()
     {
         // Create a test log file
@@ -367,7 +345,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/test-delete-unauthorized.log', [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => 'test-delete-unauthorized.log'])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
@@ -377,45 +355,39 @@ class ListLogFileTest extends TestCase
         unlink($testLogFile);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function delete_nonexistent_file_returns_404()
     {
         $response = $this->send(
             $this->request('DELETE', '/api/logs/nonexistent.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function cannot_delete_file_outside_log_directory()
     {
         // Try path traversal attack
         $response = $this->send(
             $this->request('DELETE', '/api/logs/../../../etc/passwd', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function cannot_download_file_outside_log_directory()
     {
         // Try path traversal attack
         $response = $this->send(
             $this->request('GET', '/api/logs/download/../../../etc/passwd', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());

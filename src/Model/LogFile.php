@@ -18,17 +18,17 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class LogFile
 {
-    public $id;
+    public string $id;
 
-    public $fileName;
+    public string $fileName;
 
-    public $fullPath;
+    public string $fullPath;
 
-    public $size;
+    public int $size;
 
-    public $modified;
+    public Carbon $modified;
 
-    public $content;
+    public ?string $content = null;
 
     public static function build(SplFileInfo $file, bool $withContent = false): self
     {

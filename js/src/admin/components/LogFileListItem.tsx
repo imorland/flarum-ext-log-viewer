@@ -3,7 +3,7 @@ import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import humanTime from 'flarum/common/utils/humanTime';
 import classList from 'flarum/common/utils/classList';
-import icon from 'flarum/common/helpers/icon';
+import Icon from 'flarum/common/components/Icon';
 import Tooltip from 'flarum/common/components/Tooltip';
 
 export default class LogFileListItem extends Component {
@@ -24,7 +24,7 @@ export default class LogFileListItem extends Component {
         <div className={classList('LogFile-itemWrapper', { active: selected })}>
           <div className="LogFile-info">
             <div className="fileName">
-              {icon('far fa-file-alt')}
+              <Icon name="far fa-file-alt" />
               <code>{file.fileName()}</code>
             </div>
             <div className="fileDate">

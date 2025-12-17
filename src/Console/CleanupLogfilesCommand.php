@@ -25,20 +25,12 @@ class CleanupLogfilesCommand extends Command
     protected $signature = 'logfiles:cleanup';
     protected $description = 'Deletes log files older than x days.';
 
-    protected $settings;
-    protected $filesystem;
-    protected $paths;
-
-    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
+    public function __construct(protected SettingsRepositoryInterface $settings, protected Filesystem $filesystem, protected Paths $paths)
     {
         parent::__construct();
-
-        $this->settings = $settings;
-        $this->filesystem = $filesystem;
-        $this->paths = $paths;
     }
 
-    public function handle()
+    public function handle(): void
     {
         $purgeDays = $this->getPurgeDays();
 

@@ -25,20 +25,12 @@ class SplitLargeLogfilesCommand extends Command
     protected $signature = 'logfiles:split-large';
     protected $description = 'Splits log files larger than a configured size.';
 
-    protected $settings;
-    protected $filesystem;
-    protected $paths;
-
-    public function __construct(SettingsRepositoryInterface $settings, Filesystem $filesystem, Paths $paths)
+    public function __construct(protected SettingsRepositoryInterface $settings, protected Filesystem $filesystem, protected Paths $paths)
     {
         parent::__construct();
-
-        $this->settings = $settings;
-        $this->filesystem = $filesystem;
-        $this->paths = $paths;
     }
 
-    public function handle()
+    public function handle(): void
     {
         $maxFileSize = $this->getMaxFileSize();
 
@@ -98,7 +90,7 @@ class SplitLargeLogfilesCommand extends Command
         $this->info('Large log files split successfully.');
     }
 
-    protected function splitFile($file, $maxFileSize): void
+    protected function splitFile(\Symfony\Component\Finder\SplFileInfo $file, int $maxFileSize): void
     {
         $originalFilePath = $file->getRealPath();
         $baseNameWithoutExtension = pathinfo($file->getBasename(), PATHINFO_FILENAME);

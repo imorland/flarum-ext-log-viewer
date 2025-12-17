@@ -13,6 +13,7 @@ namespace IanM\LogViewer\Tests\integration\console;
 
 use Flarum\Testing\integration\ConsoleTestCase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 
 class SplitLargeLogfilesCommandTest extends ConsoleTestCase
 {
@@ -29,6 +30,13 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
                 ['key' => 'ianm-log-viewer.max-file-size', 'value' => $maxFileSize],
             ]
         ]);
+
+        // Ensure the log directory exists
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        if (! is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
     }
 
     public function tearDown(): void
@@ -37,9 +45,7 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_log_file_is_split_when_exceeding_limit()
     {
         $this->prepareLargeLogFile();
@@ -87,9 +93,7 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_file_splitting_is_disabled_when_max_size_is_zero()
     {
         // Set max file size to 0 (disabled)
@@ -103,9 +107,7 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $this->cleanupLogFiles();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_no_files_are_split_when_there_are_no_large_files()
     {
         // Create a small log file
@@ -121,9 +123,7 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $this->cleanupLogFiles();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_invalid_or_negative_max_file_size_defaults_to_1MB()
     {
         // Set max file size to -5 (invalid)
