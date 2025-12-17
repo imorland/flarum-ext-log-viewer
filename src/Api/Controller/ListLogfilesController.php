@@ -19,7 +19,6 @@ use IanM\LogViewer\LogDirectoryTrait;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ServerRequestInterface;
-use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 use Tobscure\JsonApi\Document;
 
@@ -54,7 +53,7 @@ class ListLogfilesController extends AbstractListController
         $files = new Collection();
         $this->finder->files()->in($logDir);
         foreach ($this->finder as $file) {
-            /** @var SplFileInfo $file */
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $logfile = LogFile::build($file);
 
             $files->add($logfile);

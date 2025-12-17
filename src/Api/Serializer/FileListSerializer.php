@@ -17,6 +17,9 @@ class FileListSerializer extends AbstractSerializer
 {
     protected $type = 'logs';
 
+    /**
+     * @param \IanM\LogViewer\Model\LogFile $model
+     */
     protected function getDefaultAttributes($model)
     {
         $attributes = [
