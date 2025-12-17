@@ -41,4 +41,5 @@ return [
         ->schedule(Console\SplitLargeLogfilesCommand::class, function (Event $schedule) {
             $schedule->daily();
         }),
+    new Extend\ApiResource(Api\Resource\LogFileResource::class),
 ];
