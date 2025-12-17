@@ -13,6 +13,9 @@ export default class LogFileList extends Component {
 
     this.state = this.attrs.state;
 
+    // Register refresh callback with the state
+    this.state.setRefreshCallback(() => this.refresh());
+
     this.refresh();
   }
 

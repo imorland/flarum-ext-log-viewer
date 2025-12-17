@@ -24,7 +24,9 @@ return [
 
     (new Extend\Routes('api'))
         ->get('/logs', 'logs.index', Api\Controller\ListLogfilesController::class)
-        ->get('/logs/{file}', 'logs.show', Api\Controller\ShowLogFileController::class),
+        ->get('/logs/{file}', 'logs.show', Api\Controller\ShowLogFileController::class)
+        ->get('/logs/download/{file}', 'logs.download', Api\Controller\DownloadLogFileController::class)
+        ->delete('/logs/{file}', 'logs.delete', Api\Controller\DeleteLogFileController::class),
 
     (new Extend\Settings())
         ->default('ianm-log-viewer.purge-days', 90)

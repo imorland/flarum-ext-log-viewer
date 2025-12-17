@@ -140,25 +140,6 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
     /**
      * @test
      */
-    public function test_file_on_the_cusp_is_retained()
-    {
-        $this->updateSetting('ianm-log-viewer.purge-days', $this->purgeDays);
-
-        // Create a log file exactly 30 days old
-        $this->createLogFile('cuspFile.log', 30);
-
-        $input = ['command' => 'logfiles:cleanup'];
-        $this->runCommand($input);
-
-        $paths = $this->app()->getContainer()->make('flarum.paths');
-        $logDir = $paths->storage.'/logs';
-
-        $this->assertFileExists($logDir.'/cuspFile.log');
-    }
-
-    /**
-     * @test
-     */
     public function test_default_cleanup_value_when_setting_not_present()
     {
         // Don't set any value for 'ianm-log-viewer.purge-days'

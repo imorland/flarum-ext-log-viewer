@@ -4,6 +4,7 @@ import Button from 'flarum/common/components/Button';
 import humanTime from 'flarum/common/utils/humanTime';
 import classList from 'flarum/common/utils/classList';
 import icon from 'flarum/common/helpers/icon';
+import Tooltip from 'flarum/common/components/Tooltip';
 
 export default class LogFileListItem extends Component {
   oninit(vnode) {
@@ -11,6 +12,7 @@ export default class LogFileListItem extends Component {
 
     this.file = this.attrs.file;
     this.state = this.attrs.state;
+    this.loading = false;
   }
 
   view() {
@@ -19,13 +21,8 @@ export default class LogFileListItem extends Component {
 
     return (
       <div className="LogFile-item">
-        <Button
-          className={classList('Button Button--logFile', { active: selected })}
-          onclick={() => {
-            this.setFile(file.fileName());
-          }}
-        >
-          <div>
+        <div className={classList('LogFile-itemWrapper', { active: selected })}>
+          <div className="LogFile-info">
             <div className="fileName">
               {icon('far fa-file-alt')}
               <code>{file.fileName()}</code>
@@ -41,12 +38,40 @@ export default class LogFileListItem extends Component {
               })}
             </div>
           </div>
-        </Button>
+          <div className="LogFile-actions">
+            <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.view_log')}>
+              <Button className="Button Button--icon" icon="fas fa-eye" onclick={() => this.setFile(file.fileName())} />
+            </Tooltip>
+            <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.download_log')}>
+              <Button className="Button Button--icon" icon="fas fa-download" onclick={() => this.downloadFile(file.fileName())} />
+            </Tooltip>
+            <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.delete_log')}>
+              <Button
+                className="Button Button--icon Button--danger"
+                icon="fas fa-trash"
+                loading={this.loading}
+                onclick={() => this.deleteFile(file.fileName())}
+              />
+            </Tooltip>
+          </div>
+        </div>
       </div>
     );
   }
 
   setFile(fileName: string) {
     this.state.loadLogFile(fileName);
+  }
+
+  downloadFile(fileName: string) {
+    this.state.downloadFile(fileName);
+  }
+
+  deleteFile(fileName: string) {
+    this.loading = true;
+    this.state.deleteFile(fileName).then(() => {
+      this.loading = false;
+      m.redraw();
+    });
   }
 }
