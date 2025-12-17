@@ -5,7 +5,7 @@ import LogFile from './models/LogFile';
 app.initializers.add('ianm-log-viewer', () => {
   app.store.models.logs = LogFile;
 
-  app.extensionData
+  app.registry
     .for('ianm-log-viewer')
     .registerPermission(
       {
