@@ -38,7 +38,7 @@ class LogFile
         $logFile->fileName = $file->getFilename();
         $logFile->fullPath = $file->getRealPath();
         $logFile->size = $file->getSize();
-        $logFile->modified = Carbon::parse($file->getMTime());
+        $logFile->modified = Carbon::createFromTimestamp($file->getMTime());
 
         if ($withContent) {
             $logFile->content = $file->getContents();
@@ -62,5 +62,7 @@ class LogFile
         foreach ($finder as $file) {
             return self::build($file, $withContent);
         }
+
+        throw new \RuntimeException('Log file not found.');
     }
 }

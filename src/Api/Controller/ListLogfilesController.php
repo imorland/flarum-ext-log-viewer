@@ -54,7 +54,7 @@ class ListLogfilesController extends AbstractListController
         $files = new Collection();
         $this->finder->files()->in($logDir);
         foreach ($this->finder as $file) {
-            /** @var SplFileInfo $file */
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
             $logfile = LogFile::build($file);
 
             $files->add($logfile);

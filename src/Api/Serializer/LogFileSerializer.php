@@ -13,6 +13,9 @@ namespace IanM\LogViewer\Api\Serializer;
 
 class LogFileSerializer extends FileListSerializer
 {
+    /**
+     * @param \IanM\LogViewer\Model\LogFile $model
+     */
     protected function getDefaultAttributes($model)
     {
         $attributes = parent::getDefaultAttributes($model);
