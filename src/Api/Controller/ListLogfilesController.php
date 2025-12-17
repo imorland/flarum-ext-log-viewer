@@ -19,7 +19,6 @@ use IanM\LogViewer\LogDirectoryTrait;
 use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ServerRequestInterface;
-use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 use Tobscure\JsonApi\Document;
 
