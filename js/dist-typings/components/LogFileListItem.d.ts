@@ -4,4 +4,6 @@ export default class LogFileListItem extends Component {
     oninit(vnode: any): void;
     view(): JSX.Element;
     setFile(fileName: string): void;
+    downloadFile(fileName: string): void;
+    deleteFile(fileName: string): void;
 }
