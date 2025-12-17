@@ -272,7 +272,7 @@ class ListLogFileTest extends TestCase
 
         // Test download endpoint
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/' . $logFileName, [
+            $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 3,
             ])->withQueryParams(['file' => $logFileName])
         );
@@ -306,7 +306,7 @@ class ListLogFileTest extends TestCase
 
         // Try to download as unauthorized user
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/' . $logFileName, [
+            $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 2,
             ])->withQueryParams(['file' => $logFileName])
         );
