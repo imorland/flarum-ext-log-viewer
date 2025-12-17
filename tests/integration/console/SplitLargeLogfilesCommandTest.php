@@ -30,6 +30,13 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
                 ['key' => 'ianm-log-viewer.max-file-size', 'value' => $maxFileSize],
             ]
         ]);
+
+        // Ensure the log directory exists
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
     }
 
     public function tearDown(): void

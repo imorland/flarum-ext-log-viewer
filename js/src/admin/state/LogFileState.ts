@@ -30,7 +30,7 @@ export default class LogFileState {
   }
 
   downloadFile(filename: string) {
-    const url = app.forum.attribute('apiUrl') + '/logs/download/' + filename + '?file=' + filename;
+    const url = app.forum.attribute('apiUrl') + '/logs/download/' + filename;
     window.open(url, '_blank');
   }
 
@@ -42,7 +42,7 @@ export default class LogFileState {
     return app
       .request({
         method: 'DELETE',
-        url: app.forum.attribute('apiUrl') + '/logs/' + filename + '?file=' + filename,
+        url: app.forum.attribute('apiUrl') + '/logs/' + filename,
       })
       .then(() => {
         // Clear the currently selected file if it was deleted

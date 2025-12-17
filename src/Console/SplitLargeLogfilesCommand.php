@@ -30,7 +30,7 @@ class SplitLargeLogfilesCommand extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(): void
     {
         $maxFileSize = $this->getMaxFileSize();
 
@@ -90,7 +90,7 @@ class SplitLargeLogfilesCommand extends Command
         $this->info('Large log files split successfully.');
     }
 
-    protected function splitFile($file, $maxFileSize): void
+    protected function splitFile(\Symfony\Component\Finder\SplFileInfo $file, int $maxFileSize): void
     {
         $originalFilePath = $file->getRealPath();
         $baseNameWithoutExtension = pathinfo($file->getBasename(), PATHINFO_FILENAME);

@@ -23,6 +23,13 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
     {
         parent::setUp();
         $this->extension('ianm-log-viewer');
+
+        // Ensure the log directory exists
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
     }
 
     public function tearDown(): void

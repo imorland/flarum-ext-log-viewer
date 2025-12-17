@@ -22,11 +22,7 @@ return [
 
     new Extend\Locales(__DIR__.'/locale'),
 
-    (new Extend\Routes('api'))
-        ->get('/logs', 'logs.index', Api\Controller\ListLogfilesController::class)
-        ->get('/logs/{file}', 'logs.show', Api\Controller\ShowLogFileController::class)
-        ->get('/logs/download/{file}', 'logs.download', Api\Controller\DownloadLogFileController::class)
-        ->delete('/logs/{file}', 'logs.delete', Api\Controller\DeleteLogFileController::class),
+    new Extend\ApiResource(Api\Resource\LogFileResource::class),
 
     (new Extend\Settings())
         ->default('ianm-log-viewer.purge-days', 90)
@@ -41,5 +37,4 @@ return [
         ->schedule(Console\SplitLargeLogfilesCommand::class, function (Event $schedule) {
             $schedule->daily();
         }),
-    new Extend\ApiResource(Api\Resource\LogFileResource::class),
 ];

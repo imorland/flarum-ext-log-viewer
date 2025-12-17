@@ -18,7 +18,7 @@ use Illuminate\Support\Arr;
 use PHPUnit\Framework\Attributes\Test;
 use Flarum\User\User;
 
-class ListLogFileTest extends TestCase
+class ListLogFilesTest extends TestCase
 {
     use RetrievesAuthorizedUsers;
 
@@ -94,7 +94,7 @@ class ListLogFileTest extends TestCase
             $this->request('GET', '/api/logs')
         );
 
-        $this->assertEquals(403, $response->getStatusCode());
+        $this->assertEquals(401, $response->getStatusCode());
     }
 
     #[Test]
@@ -260,7 +260,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -292,7 +292,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/'.$logFileName, [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
@@ -304,7 +304,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/nonexistent.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -325,7 +325,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/test-delete.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'test-delete.log'])
+            ])
         );
 
         $this->assertEquals(204, $response->getStatusCode());
@@ -345,7 +345,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/test-delete-unauthorized.log', [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => 'test-delete-unauthorized.log'])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
@@ -361,7 +361,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/nonexistent.log', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -374,7 +374,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('DELETE', '/api/logs/../../../etc/passwd', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -387,7 +387,7 @@ class ListLogFileTest extends TestCase
         $response = $this->send(
             $this->request('GET', '/api/logs/download/../../../etc/passwd', [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());

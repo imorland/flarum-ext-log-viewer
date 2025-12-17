@@ -30,7 +30,7 @@ class CleanupLogfilesCommand extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(): void
     {
         $purgeDays = $this->getPurgeDays();
 
