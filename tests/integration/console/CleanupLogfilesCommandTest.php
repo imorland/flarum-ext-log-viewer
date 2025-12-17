@@ -13,6 +13,7 @@ namespace IanM\LogViewer\Tests\integration\console;
 
 use Carbon\Carbon;
 use Flarum\Testing\integration\ConsoleTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class CleanupLogfilesCommandTest extends ConsoleTestCase
 {
@@ -30,9 +31,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_old_log_files_are_deleted()
     {
         // Set purge days to our test value
@@ -47,9 +46,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->assertStringContainsString('1 log files older than 30 days have been deleted.', $output);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_new_log_files_are_retained()
     {
         // Set purge days to our test value
@@ -64,9 +61,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->assertStringContainsString('No old log files found.', $output);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_cleanup_is_disabled_with_non_positive_purge_days()
     {
         // Set purge days to 0 (disabled)
@@ -116,9 +111,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_correct_files_are_deleted_among_multiple_files()
     {
         $this->updateSetting('ianm-log-viewer.purge-days', $this->purgeDays);
@@ -137,9 +130,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->assertFileExists($logDir.'/newFile.log');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_default_cleanup_value_when_setting_not_present()
     {
         // Don't set any value for 'ianm-log-viewer.purge-days'
@@ -155,9 +146,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->assertFileDoesNotExist($logDir.'/defaultOldFile.log');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_negative_purge_days_value_disables_cleanup()
     {
         $this->updateSetting('ianm-log-viewer.purge-days', -30);
@@ -171,9 +160,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         $this->assertStringContainsString('Log file cleanup is disabled.', $output);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function test_non_numeric_purge_days_value_uses_default()
     {
         $this->updateSetting('ianm-log-viewer.purge-days', 'abc');  // invalid value
