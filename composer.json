@@ -29,9 +29,9 @@
             "title": "Log Viewer",
             "category": "feature",
             "icon": {
-                "name": "far fa-file-alt",
-                "color": "#0072e3",
-                "backgroundColor": "#fff"
+                "name": "fas fa-file-alt",
+                "color": "#fff",
+                "backgroundColor": "#0072e3"
             }
         },
         "flarum-cli": {

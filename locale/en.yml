@@ -13,4 +13,8 @@ ianm-log-viewer:
       file_size: "Size (bytes): {size}"
       last_updated: "Last updated: {updated}"
       no_file_selected: Select a log file to view its content.
+      view_log: View log file
+      download_log: Download log file
+      delete_log: Delete log file
+      confirm_delete: Are you sure you want to delete this log file? This action cannot be undone.
 
