@@ -14,9 +14,9 @@ namespace IanM\LogViewer\Tests\integration\api;
 use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Flarum\User\User;
 use Illuminate\Support\Arr;
 use PHPUnit\Framework\Attributes\Test;
-use Flarum\User\User;
 
 class ListLogFilesTest extends TestCase
 {

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of ianm/log-viewer.
+ *
+ * Copyright (c) 2022 IanM.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
 namespace IanM\LogViewer\Api\Resource;
 
 use Flarum\Api\Context;
@@ -17,7 +26,6 @@ use IanM\LogViewer\Model\LogFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Laminas\Diactoros\Response;
-use Laminas\Diactoros\Response\EmptyResponse;
 use Laminas\Diactoros\Stream;
 use Symfony\Component\Finder\Finder;
 
@@ -90,7 +98,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
                     // Extract filename from the route path - it's in the 'id' part of the route
                     $fileName = $this->id($context);
 
-                    if (!$fileName) {
+                    if (! $fileName) {
                         throw new RouteNotFoundException();
                     }
 
@@ -98,9 +106,9 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
                     $fileName = basename($fileName);
 
                     $logDir = $this->getLogDirectory($this->paths);
-                    $filePath = $logDir . DIRECTORY_SEPARATOR . $fileName;
+                    $filePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
 
-                    if (!file_exists($filePath) || !is_file($filePath)) {
+                    if (! file_exists($filePath) || ! is_file($filePath)) {
                         throw new RouteNotFoundException();
                     }
 
@@ -108,7 +116,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
                     $realLogDir = realpath($logDir);
                     $realFilePath = realpath($filePath);
 
-                    if (!$realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
+                    if (! $realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
                         throw new RouteNotFoundException();
                     }
 
@@ -120,7 +128,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
 
                     $headers = [
                         'Content-Type' => 'application/octet-stream',
-                        'Content-Disposition' => 'attachment; filename="' . basename($data['fileName']) . '"',
+                        'Content-Disposition' => 'attachment; filename="'.basename($data['fileName']).'"',
                     ];
 
                     if ($fileSize !== false) {
@@ -229,7 +237,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
     }
 
     /**
-     * For Delete endpoint
+     * For Delete endpoint.
      */
     public function delete(object $model, \Tobyz\JsonApiServer\Context $context): void
     {
@@ -238,9 +246,9 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
 
         $fileName = basename($model->fileName);
         $logDir = $this->getLogDirectory($this->paths);
-        $filePath = $logDir . DIRECTORY_SEPARATOR . $fileName;
+        $filePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
 
-        if (!file_exists($filePath) || !is_file($filePath)) {
+        if (! file_exists($filePath) || ! is_file($filePath)) {
             throw new RouteNotFoundException();
         }
 
@@ -248,7 +256,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
         $realLogDir = realpath($logDir);
         $realFilePath = realpath($filePath);
 
-        if (!$realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
+        if (! $realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
             throw new RouteNotFoundException();
         }
 

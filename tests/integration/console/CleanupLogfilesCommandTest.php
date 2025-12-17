@@ -27,7 +27,7 @@ class CleanupLogfilesCommandTest extends ConsoleTestCase
         // Ensure the log directory exists
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
-        if (!is_dir($logDir)) {
+        if (! is_dir($logDir)) {
             mkdir($logDir, 0777, true);
         }
     }
