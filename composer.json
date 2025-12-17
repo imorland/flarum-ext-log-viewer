@@ -10,7 +10,7 @@
         "forum": "https://discuss.flarum.org/d/31932-flarum-log-viewer"
     },
     "require": {
-        "flarum/core": "^1.2.0"
+        "flarum/core": "^2.0.0-beta"
     },
     "authors": [
         {
@@ -79,8 +79,8 @@
         "test:setup": "Sets up a database for use with integration tests. Execute this only once."
     },
     "require-dev": {
-        "flarum/testing": "^1.0.0",
+        "flarum/testing": "^2.0.0-beta",
         "symfony/var-dumper": "*",
-        "flarum/phpstan": "*"
+        "flarum/phpstan": "^2.0.0-beta"
     }
 }
