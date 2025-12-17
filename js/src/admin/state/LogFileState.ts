@@ -35,7 +35,7 @@ export default class LogFileState {
   }
 
   deleteFile(filename: string) {
-    if (!confirm(app.translator.trans('ianm-log-viewer.admin.viewer.confirm_delete'))) {
+    if (!confirm(String(app.translator.trans('ianm-log-viewer.admin.viewer.confirm_delete')))) {
       return Promise.resolve();
     }
 
