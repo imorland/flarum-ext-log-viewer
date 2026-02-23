@@ -70,7 +70,9 @@ export default class LogFileViewer extends Component<LogFileViewerAttrs> {
               this.scrollToBottom();
             }
           }}
-        >{content}</pre>
+        >
+          {content}
+        </pre>
       </div>
     );
   }
