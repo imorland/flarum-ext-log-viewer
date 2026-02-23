@@ -8,10 +8,12 @@ function encodeId(relativePath: string): string {
 
 export default class LogFileState {
   file: any;
+  loading: boolean;
   onRefresh: (() => void) | null;
 
   constructor() {
     this.file = null;
+    this.loading = false;
     this.onRefresh = null;
   }
 
@@ -20,6 +22,9 @@ export default class LogFileState {
   }
 
   loadLogFile(relativePath: string) {
+    this.loading = true;
+    m.redraw();
+
     app
       .request({
         method: 'GET',
@@ -27,12 +32,21 @@ export default class LogFileState {
       })
       .then((result) => {
         this.file = result;
+        this.loading = false;
+        m.redraw();
+      })
+      .catch(() => {
+        this.loading = false;
         m.redraw();
       });
   }
 
   getFile() {
     return this.file;
+  }
+
+  isLoading() {
+    return this.loading;
   }
 
   downloadFile(relativePath: string) {

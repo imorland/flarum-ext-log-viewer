@@ -25,15 +25,33 @@
 
   .LogFile-itemWrapper {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     gap: 8px;
-    padding: 8px;
+    padding: 8px 10px;
     border-radius: var(--border-radius);
     border: 1px solid var(--control-bg);
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+
+    // All children pass clicks through to the wrapper, except the action buttons
+    // which explicitly restore pointer-events to handle their own clicks.
+    * {
+      pointer-events: none;
+    }
+
+    .LogFile-actions * {
+      pointer-events: auto;
+    }
 
     &:hover {
       background-color: var(--control-bg);
+      border-color: var(--control-bg-light, var(--control-bg));
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 1px;
     }
 
     &.active {
@@ -43,29 +61,53 @@
   }
 
   .LogFile-info {
+    flex: 1;
     width: 100%;
+    min-width: 0;
 
     .fileName {
       display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: bold;
+      align-items: flex-start;
+      gap: 6px;
+      font-weight: 600;
       word-break: break-all;
-
-      code {
-        flex: 1;
-      }
 
       .icon {
         flex-shrink: 0;
+        margin-top: 2px;
+        opacity: 0.7;
+      }
+
+      &-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      &-dir {
+        color: var(--muted-color);
+        font-weight: 400;
+        font-size: 11px;
+        display: block;
+        line-height: 1.2;
+      }
+
+      &-name {
+        display: block;
+        line-height: 1.4;
       }
     }
 
-    .fileDate,
-    .fileInfo {
-      font-size: 12px;
+    .fileMeta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
       color: var(--muted-color);
-      margin-top: 4px;
+      margin-top: 3px;
+
+      .fileDot {
+        opacity: 0.5;
+      }
     }
   }
 
@@ -76,8 +118,8 @@
     flex-shrink: 0;
 
     .Button {
-      min-width: 32px;
-      height: 32px;
+      min-width: 28px;
+      height: 28px;
       padding: 0;
       display: flex;
       align-items: center;
@@ -86,12 +128,11 @@
   }
 
   @media @desktop-up {
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 260px 1fr;
     grid-template-rows: 1fr;
 
     &--fileListItems {
       flex-direction: column;
-
       height: 100%;
     }
 
@@ -105,7 +146,7 @@
 
   &--fileList,
   &--container {
-    // Prevents grid blowlout when the file content is too long
+    // Prevents grid blowout when the file content is too long
     min-width: 0;
     min-height: 0;
 
@@ -117,32 +158,101 @@
     overflow: auto;
   }
 
-  .Button--logFile {
-    text-align: left;
-    width: 100%;
+  &--emptyList {
+    padding: 16px;
+    color: var(--muted-color);
+    font-size: 13px;
+    text-align: center;
+  }
 
-    .icon {
-      margin-right: 5px;
+  &--contentHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+
+    h3 {
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: source-code-pro, Monaco, Consolas, "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted-color);
     }
   }
 
   .LogViewerPage--No-File,
   .LogViewerPage--fileContent {
     width: 100%;
-    height: 100%;
-    padding: 16px;
-    overflow: auto;
+    flex: 1;
+    min-height: 0;
 
     background-color: var(--control-bg);
     border-radius: var(--border-radius);
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--control-bg-light, var(--control-bg));
     font-family: source-code-pro, Monaco, Consolas, "Courier New", monospace;
     color: var(--code-color);
-    line-height: 1.3;
+    line-height: 1.5;
+    font-size: 12px;
+    position: relative;
+  }
+
+  .LogViewerPage--No-File {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    color: var(--muted-color);
+  }
+
+  .LogViewerPage--fileContent {
+    overflow: hidden;
 
     pre {
       margin: 0;
-      padding: 0;
+      padding: 16px;
+      height: 100%;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
   }
+
+  .LogViewerPage--fileActions {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 1;
+
+    .Button {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--body-bg);
+      border: 1px solid var(--control-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      opacity: 0.8;
+      transition: opacity 0.15s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.LogViewerPage-settings {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--control-bg);
 }
