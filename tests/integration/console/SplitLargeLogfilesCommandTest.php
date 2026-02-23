@@ -143,6 +143,36 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $this->cleanupLogFiles();
     }
 
+    #[Test]
+    public function test_resplitting_an_already_split_file_does_not_compound_part_names()
+    {
+        // Simulate a file that was previously split: largeTest-part3.log is still too large.
+        // The command must produce largeTest-part3.log → largeTest-part4.log, largeTest-part5.log, …
+        // NOT largeTest-part3-part4.log, largeTest-part3-part4-part5.log, …
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+
+        $largeContent = Str::random(($this->maxFileSize * 1024 * 1024) * 2.5);
+        file_put_contents($logDir.'/largeTest-part3.log', $largeContent);
+
+        $input = ['command' => 'logfiles:split-large'];
+        $this->runCommand($input);
+
+        // Correct output: sequential part numbers, no compounding
+        $this->assertFileExists($logDir.'/largeTest-part4.log');
+        $this->assertFileExists($logDir.'/largeTest-part5.log');
+        $this->assertFileExists($logDir.'/largeTest-part6.log');
+
+        // Incorrect output must NOT exist
+        $this->assertFileDoesNotExist($logDir.'/largeTest-part3-part4.log');
+        $this->assertFileDoesNotExist($logDir.'/largeTest-part3-part4-part5.log');
+
+        // Cleanup
+        foreach (['largeTest-part4.log', 'largeTest-part5.log', 'largeTest-part6.log'] as $f) {
+            @unlink($logDir.'/'.$f);
+        }
+    }
+
     protected function updateSetting($key, $value)
     {
         $this->send(

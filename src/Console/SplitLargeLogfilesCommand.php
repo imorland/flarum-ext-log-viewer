@@ -76,7 +76,7 @@ class SplitLargeLogfilesCommand extends Command
         $finder = new Finder();
         $finder->files()
             ->in($this->getLogDirectory($this->paths))
-            ->size('>'.$maxFileSize);
+            ->size('> '.$maxFileSize);
 
         return $finder;
     }
@@ -96,9 +96,14 @@ class SplitLargeLogfilesCommand extends Command
         $baseNameWithoutExtension = pathinfo($file->getBasename(), PATHINFO_FILENAME);
         $extension = pathinfo($file->getBasename(), PATHINFO_EXTENSION);
 
-        // Determine the starting part number
+        // Determine the starting part number and strip any existing -partN suffix
+        // so that re-splitting an already-split file doesn't produce compounded names
+        // like "flarum-part3-part6-part9...".
         $existingParts = preg_match('/-part(\\d+)$/', $baseNameWithoutExtension, $matches);
         $partNumber = $existingParts ? (int) $matches[1] + 1 : 1;
+        $baseNameWithoutExtension = $existingParts
+            ? substr($baseNameWithoutExtension, 0, -strlen($matches[0]))
+            : $baseNameWithoutExtension;
 
         // Open the original file for reading
         $handle = fopen($originalFilePath, 'rb');
@@ -108,15 +113,18 @@ class SplitLargeLogfilesCommand extends Command
             return;
         }
 
-        $partFiles = [];
+        $partsWritten = 0;
         while (! feof($handle)) {
+            $chunk = fread($handle, $maxFileSize);
+
+            // fread returns an empty string at EOF on some systems; skip it.
+            if ($chunk === '' || $chunk === false) {
+                break;
+            }
+
             $filename = $baseNameWithoutExtension.'-part'.$partNumber.'.'.$extension;
             $filePath = $file->getPath().DIRECTORY_SEPARATOR.$filename;
 
-            // Read a chunk of the file
-            $chunk = fread($handle, $maxFileSize);
-
-            // Write the chunk to a new part file
             if (file_put_contents($filePath, $chunk) === false) {
                 $this->error('Error writing to file: '.$filePath);
                 fclose($handle);
@@ -124,21 +132,21 @@ class SplitLargeLogfilesCommand extends Command
                 return;
             }
 
-            $partFiles[] = $filePath;
             $partNumber++;
+            $partsWritten++;
         }
 
         // Close the original file handle
         fclose($handle);
 
-        // Rename the original file to become the last part (if there are multiple parts)
-        if (count($partFiles) > 1) {
-            $lastPartFileName = $baseNameWithoutExtension.'-part'.($partNumber - 1).'.'.$extension;
-            $lastPartFilePath = $file->getPath().DIRECTORY_SEPARATOR.$lastPartFileName;
-            rename($originalFilePath, $lastPartFilePath);
+        if ($partsWritten > 1) {
+            // All chunks were written to new part files; delete the original.
+            unlink($originalFilePath);
         } else {
-            // If there's only one part, delete the split file and keep the original
-            unlink($partFiles[0]);
+            // Only one chunk written — file was at or below the limit (e.g. exactly
+            // maxFileSize bytes). Remove the single part file and leave original intact.
+            $singlePartPath = $file->getPath().DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part'.($partNumber - 1).'.'.$extension;
+            @unlink($singlePartPath);
         }
     }
 }

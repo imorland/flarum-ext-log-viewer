@@ -1,5 +1,11 @@
 import app from 'flarum/admin/app';
 
+// Encode a relative path as URL-safe base64 (base64url, RFC 4648 §5) so that
+// paths containing '/' are safe to embed as a single URL path segment.
+function encodeId(relativePath: string): string {
+  return btoa(relativePath).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 export default class LogFileState {
   file: any;
   onRefresh: (() => void) | null;
@@ -13,11 +19,11 @@ export default class LogFileState {
     this.onRefresh = callback;
   }
 
-  loadLogFile(filename: string) {
+  loadLogFile(relativePath: string) {
     app
       .request({
         method: 'GET',
-        url: app.forum.attribute('apiUrl') + '/logs/' + filename,
+        url: app.forum.attribute('apiUrl') + '/logs/' + encodeId(relativePath),
       })
       .then((result) => {
         this.file = result;
@@ -29,12 +35,12 @@ export default class LogFileState {
     return this.file;
   }
 
-  downloadFile(filename: string) {
-    const url = app.forum.attribute('apiUrl') + '/logs/download/' + filename;
+  downloadFile(relativePath: string) {
+    const url = app.forum.attribute('apiUrl') + '/logs/download/' + encodeId(relativePath);
     window.open(url, '_blank');
   }
 
-  deleteFile(filename: string) {
+  deleteFile(relativePath: string) {
     if (!confirm(String(app.translator.trans('ianm-log-viewer.admin.viewer.confirm_delete')))) {
       return Promise.resolve();
     }
@@ -42,11 +48,11 @@ export default class LogFileState {
     return app
       .request({
         method: 'DELETE',
-        url: app.forum.attribute('apiUrl') + '/logs/' + filename,
+        url: app.forum.attribute('apiUrl') + '/logs/' + encodeId(relativePath),
       })
       .then(() => {
         // Clear the currently selected file if it was deleted
-        if (this.file && this.file.data.attributes.fileName === filename) {
+        if (this.file && this.file.data.attributes.relativePath === relativePath) {
           this.file = null;
         }
 
