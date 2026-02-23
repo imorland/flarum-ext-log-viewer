@@ -68,7 +68,7 @@ class CleanupLogfilesCommand extends Command
         }
 
         if ((int) $purgeDays < 0) {
-            return -1;  // Indicate disabled cleanup for negative values
+            return 0;  // Treat negative values as disabled (same as zero)
         }
 
         return (int) $purgeDays;

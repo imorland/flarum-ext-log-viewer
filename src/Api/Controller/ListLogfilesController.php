@@ -31,32 +31,26 @@ class ListLogfilesController extends AbstractListController
      */
     protected $paths;
 
-    /**
-     * @var Finder
-     */
-    protected $finder;
-
     public $serializer = FileListSerializer::class;
 
-    public function __construct(Paths $paths, Finder $finder)
+    public function __construct(Paths $paths)
     {
         $this->paths = $paths;
-        $this->finder = $finder;
     }
 
     protected function data(ServerRequestInterface $request, Document $document)
     {
-        RequestUtil::getActor($request)->assertCan('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('manageLogfiles');
 
         $logDir = $this->getLogDirectory($this->paths);
 
-        $files = new Collection();
-        $this->finder->files()->in($logDir);
-        foreach ($this->finder as $file) {
-            /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $logfile = LogFile::build($file);
+        $finder = new Finder();
+        $finder->files()->in($logDir);
 
-            $files->add($logfile);
+        $files = new Collection();
+        foreach ($finder as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            $files->add(LogFile::build($file));
         }
 
         return $files->sortBy(function ($object) {

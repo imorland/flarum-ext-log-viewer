@@ -25,7 +25,7 @@ export default class LogFileListItem extends Component {
           <div className="LogFile-info">
             <div className="fileName">
               {icon('far fa-file-alt')}
-              <code>{file.fileName()}</code>
+              <code>{file.relativePath()}</code>
             </div>
             <div className="fileDate">
               {app.translator.trans('ianm-log-viewer.admin.viewer.last_updated', {
@@ -40,17 +40,17 @@ export default class LogFileListItem extends Component {
           </div>
           <div className="LogFile-actions">
             <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.view_log')}>
-              <Button className="Button Button--icon" icon="fas fa-eye" onclick={() => this.setFile(file.fileName())} />
+              <Button className="Button Button--icon" icon="fas fa-eye" onclick={() => this.setFile(file.relativePath())} />
             </Tooltip>
             <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.download_log')}>
-              <Button className="Button Button--icon" icon="fas fa-download" onclick={() => this.downloadFile(file.fileName())} />
+              <Button className="Button Button--icon" icon="fas fa-download" onclick={() => this.downloadFile(file.relativePath())} />
             </Tooltip>
             <Tooltip text={app.translator.trans('ianm-log-viewer.admin.viewer.delete_log')}>
               <Button
                 className="Button Button--icon Button--danger"
                 icon="fas fa-trash"
                 loading={this.loading}
-                onclick={() => this.deleteFile(file.fileName())}
+                onclick={() => this.deleteFile(file.relativePath())}
               />
             </Tooltip>
           </div>

@@ -11,7 +11,7 @@ app.initializers.add('ianm-log-viewer', () => {
       {
         icon: 'far fa-file-alt',
         label: app.translator.trans('ianm-log-viewer.admin.permissions.access_logfile_api'),
-        permission: 'readLogfiles',
+        permission: 'manageLogfiles',
       },
       'view'
     )

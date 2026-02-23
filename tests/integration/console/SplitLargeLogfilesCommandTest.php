@@ -51,6 +51,8 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
 
+        // Original file should be deleted after splitting
+        $this->assertFileDoesNotExist($logDir.'/'.$this->largeLogFileName);
         $this->assertFileExists($logDir.'/'.'largeTest-part1.log');
         $this->assertFileExists($logDir.'/'.'largeTest-part2.log');
         $this->assertFileExists($logDir.'/'.'largeTest-part3.log');
@@ -74,9 +76,10 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $logDir = $paths->storage.'/logs';
 
         $filesToDelete = [
+            $this->largeLogFileName,
             'largeTest-part1.log',
             'largeTest-part2.log',
-            'largeTest-part3.log'
+            'largeTest-part3.log',
         ];
 
         foreach ($filesToDelete as $filename) {
@@ -139,6 +142,32 @@ class SplitLargeLogfilesCommandTest extends ConsoleTestCase
         $this->assertFileExists($logDir.'/'.'largeTest-part1.log');
         $this->assertFileExists($logDir.'/'.'largeTest-part2.log');
         $this->assertFileExists($logDir.'/'.'largeTest-part3.log');
+
+        $this->cleanupLogFiles();
+    }
+
+    /**
+     * @test
+     */
+    public function test_resplitting_an_already_split_file_does_not_compound_part_names()
+    {
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+
+        // Simulate an already-split file that is still too large
+        $largeContent = Str::random(($this->maxFileSize * 1024 * 1024) * 2.5);
+        file_put_contents($logDir.'/largeTest-part1.log', $largeContent);
+
+        $input = ['command' => 'logfiles:split-large'];
+        $this->runCommand($input);
+
+        // Resulting files must be largeTest-part1.log, largeTest-part2.log, largeTest-part3.log
+        // NOT largeTest-part1-part1.log etc.
+        $this->assertFileExists($logDir.'/largeTest-part1.log');
+        $this->assertFileExists($logDir.'/largeTest-part2.log');
+        $this->assertFileExists($logDir.'/largeTest-part3.log');
+        $this->assertFileDoesNotExist($logDir.'/largeTest-part1-part1.log');
+        $this->assertFileDoesNotExist($logDir.'/largeTest-part1-part2.log');
 
         $this->cleanupLogFiles();
     }

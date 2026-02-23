@@ -35,14 +35,13 @@ class ListLogFileTest extends TestCase
                 ['group_id' => 4, 'user_id' => 3],
             ],
             'group_permission' => [
-                ['group_id' => 4, 'permission' => 'readLogfiles'],
+                ['group_id' => 4, 'permission' => 'manageLogfiles'],
             ]
         ]);
 
         // Delete any existing log files before starting
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
-        // check the folder exists, if not, create it
         if (! is_dir($logDir)) {
             mkdir($logDir, 0777, true);
         }
@@ -51,6 +50,14 @@ class ListLogFileTest extends TestCase
         foreach ($finder as $file) {
             unlink($file->getRealPath());
         }
+    }
+
+    /**
+     * Encode a relative path as URL-safe base64 (matches FileListSerializer::encodeId).
+     */
+    protected function encodeId(string $relativePath): string
+    {
+        return rtrim(strtr(base64_encode($relativePath), '+/', '-_'), '=');
     }
 
     /**
@@ -118,10 +125,10 @@ class ListLogFileTest extends TestCase
 
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
-        $logFileName = Arr::get($data[0], 'attributes.fileName');
+        $encodedId = Arr::get($data[0], 'id');
 
         $response = $this->send(
-            $this->request('GET', "/api/logs/$logFileName", [
+            $this->request('GET', "/api/logs/$encodedId", [
                 'authenticatedAs' => 3,
             ])
         );
@@ -152,10 +159,10 @@ class ListLogFileTest extends TestCase
 
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
-        $logFileName = Arr::get($data[0], 'id');
+        $encodedId = Arr::get($data[0], 'id');
 
         $response = $this->send(
-            $this->request('GET', "/api/logs/$logFileName", [
+            $this->request('GET', "/api/logs/$encodedId", [
                 'authenticatedAs' => 2,
             ])
         );
@@ -168,8 +175,10 @@ class ListLogFileTest extends TestCase
      */
     public function unauthorized_user_cannot_get_logfile_not_existing()
     {
+        $encodedId = $this->encodeId('idontexist.log');
+
         $response = $this->send(
-            $this->request('GET', '/api/logs/idontexist.log', [
+            $this->request('GET', "/api/logs/$encodedId", [
                 'authenticatedAs' => 2,
             ])
         );
@@ -182,13 +191,10 @@ class ListLogFileTest extends TestCase
      */
     public function authorized_user_can_get_logfile_with_malformed_utf8()
     {
-        // Create a log file with malformed UTF-8 characters
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
         $testLogFile = $logDir.'/test-malformed-utf8.log';
 
-        // Write content with invalid UTF-8 byte sequences
-        // \xFF is invalid in UTF-8, as are other sequences like \x80-\xBF without proper leading bytes
         $malformedContent = "Valid UTF-8 line\n";
         $malformedContent .= "Line with invalid UTF-8: \xFF\xFE\x80\x81\n";
         $malformedContent .= "Another valid line\n";
@@ -196,9 +202,10 @@ class ListLogFileTest extends TestCase
 
         file_put_contents($testLogFile, $malformedContent);
 
-        // List log files to get the file name
+        $encodedId = $this->encodeId('test-malformed-utf8.log');
+
         $response = $this->send(
-            $this->request('GET', '/api/logs', [
+            $this->request('GET', "/api/logs/$encodedId", [
                 'authenticatedAs' => 3,
             ])
         );
@@ -208,46 +215,14 @@ class ListLogFileTest extends TestCase
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
 
-        // Find our test log file
-        $testLog = null;
-        foreach ($data as $log) {
-            if (Arr::get($log, 'attributes.fileName') === 'test-malformed-utf8.log') {
-                $testLog = $log;
-                break;
-            }
-        }
-
-        $this->assertNotNull($testLog, 'Test log file should be found in the list');
-
-        // Now fetch the log file content - this should NOT throw a JSON encoding exception
-        $logFileName = Arr::get($testLog, 'attributes.fileName');
-        $response = $this->send(
-            $this->request('GET', "/api/logs/$logFileName", [
-                'authenticatedAs' => 3,
-            ])
-        );
-
-        // Should successfully return 200, not 500 with JSON encoding error
-        $this->assertEquals(200, $response->getStatusCode());
-
-        $json = json_decode($response->getBody()->getContents(), true);
-        $data = Arr::get($json, 'data');
-
-        // Verify we got the content back
         $this->assertIsArray($json['data']);
         $this->assertEquals('logs', Arr::get($data, 'type'));
 
         $content = $data['attributes']['content'];
-
-        // The content should contain the valid parts
         $this->assertStringContainsString('Valid UTF-8 line', $content);
         $this->assertStringContainsString('Another valid line', $content);
-
-        // The malformed UTF-8 sequences should be replaced with replacement characters
-        // and the response should be valid JSON (which we've already verified by decoding it)
         $this->assertNotEmpty($content);
 
-        // Clean up
         unlink($testLogFile);
     }
 
@@ -268,13 +243,13 @@ class ListLogFileTest extends TestCase
 
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
+        $encodedId = Arr::get($data[0], 'id');
         $logFileName = Arr::get($data[0], 'attributes.fileName');
 
-        // Test download endpoint
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/'.$logFileName, [
+            $this->request('GET', '/api/logs/download/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -282,7 +257,6 @@ class ListLogFileTest extends TestCase
         $this->assertStringContainsString('attachment', $response->getHeaderLine('Content-Disposition'));
         $this->assertStringContainsString($logFileName, $response->getHeaderLine('Content-Disposition'));
 
-        // Verify content is downloadable
         $body = $response->getBody()->getContents();
         $this->assertStringContainsString('Download test content', $body);
     }
@@ -302,13 +276,12 @@ class ListLogFileTest extends TestCase
 
         $json = json_decode($response->getBody()->getContents(), true);
         $data = Arr::get($json, 'data');
-        $logFileName = Arr::get($data[0], 'attributes.fileName');
+        $encodedId = Arr::get($data[0], 'id');
 
-        // Try to download as unauthorized user
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/'.$logFileName, [
+            $this->request('GET', '/api/logs/download/'.$encodedId, [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => $logFileName])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
@@ -319,10 +292,12 @@ class ListLogFileTest extends TestCase
      */
     public function download_nonexistent_file_returns_404()
     {
+        $encodedId = $this->encodeId('nonexistent.log');
+
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/nonexistent.log', [
+            $this->request('GET', '/api/logs/download/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -333,7 +308,6 @@ class ListLogFileTest extends TestCase
      */
     public function authorized_user_can_delete_logfile()
     {
-        // Create a test log file
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
         $testLogFile = $logDir.'/test-delete.log';
@@ -341,11 +315,12 @@ class ListLogFileTest extends TestCase
 
         $this->assertTrue(file_exists($testLogFile));
 
-        // Delete the file
+        $encodedId = $this->encodeId('test-delete.log');
+
         $response = $this->send(
-            $this->request('DELETE', '/api/logs/test-delete.log', [
+            $this->request('DELETE', '/api/logs/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'test-delete.log'])
+            ])
         );
 
         $this->assertEquals(204, $response->getStatusCode());
@@ -357,23 +332,22 @@ class ListLogFileTest extends TestCase
      */
     public function unauthorized_user_cannot_delete_logfile()
     {
-        // Create a test log file
         $paths = $this->app()->getContainer()->make('flarum.paths');
         $logDir = $paths->storage.'/logs';
         $testLogFile = $logDir.'/test-delete-unauthorized.log';
         file_put_contents($testLogFile, 'This file should not be deleted');
 
-        // Try to delete as unauthorized user
+        $encodedId = $this->encodeId('test-delete-unauthorized.log');
+
         $response = $this->send(
-            $this->request('DELETE', '/api/logs/test-delete-unauthorized.log', [
+            $this->request('DELETE', '/api/logs/'.$encodedId, [
                 'authenticatedAs' => 2,
-            ])->withQueryParams(['file' => 'test-delete-unauthorized.log'])
+            ])
         );
 
         $this->assertEquals(403, $response->getStatusCode());
         $this->assertTrue(file_exists($testLogFile));
 
-        // Clean up
         unlink($testLogFile);
     }
 
@@ -382,10 +356,12 @@ class ListLogFileTest extends TestCase
      */
     public function delete_nonexistent_file_returns_404()
     {
+        $encodedId = $this->encodeId('nonexistent.log');
+
         $response = $this->send(
-            $this->request('DELETE', '/api/logs/nonexistent.log', [
+            $this->request('DELETE', '/api/logs/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => 'nonexistent.log'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -396,11 +372,12 @@ class ListLogFileTest extends TestCase
      */
     public function cannot_delete_file_outside_log_directory()
     {
-        // Try path traversal attack
+        $encodedId = $this->encodeId('../../../etc/passwd');
+
         $response = $this->send(
-            $this->request('DELETE', '/api/logs/../../../etc/passwd', [
+            $this->request('DELETE', '/api/logs/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
@@ -411,13 +388,143 @@ class ListLogFileTest extends TestCase
      */
     public function cannot_download_file_outside_log_directory()
     {
-        // Try path traversal attack
+        $encodedId = $this->encodeId('../../../etc/passwd');
+
         $response = $this->send(
-            $this->request('GET', '/api/logs/download/../../../etc/passwd', [
+            $this->request('GET', '/api/logs/download/'.$encodedId, [
                 'authenticatedAs' => 3,
-            ])->withQueryParams(['file' => '../../../etc/passwd'])
+            ])
         );
 
         $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_list_subdirectory_logfiles()
+    {
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        $subDir = $logDir.'/subdir';
+
+        if (! is_dir($subDir)) {
+            mkdir($subDir, 0777, true);
+        }
+
+        file_put_contents($subDir.'/sub-test.log', 'Subdirectory log content');
+
+        $response = $this->send(
+            $this->request('GET', '/api/logs', [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $json = json_decode($response->getBody()->getContents(), true);
+        $data = Arr::get($json, 'data');
+        $this->assertIsArray($data);
+
+        $relativePaths = array_column(array_column($data, 'attributes'), 'relativePath');
+        $this->assertContains('subdir/sub-test.log', $relativePaths);
+
+        unlink($subDir.'/sub-test.log');
+        rmdir($subDir);
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_view_subdirectory_logfile()
+    {
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        $subDir = $logDir.'/subdir';
+
+        if (! is_dir($subDir)) {
+            mkdir($subDir, 0777, true);
+        }
+
+        file_put_contents($subDir.'/sub-view.log', 'Subdirectory view content');
+
+        $encodedId = $this->encodeId('subdir/sub-view.log');
+
+        $response = $this->send(
+            $this->request('GET', "/api/logs/$encodedId", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $json = json_decode($response->getBody()->getContents(), true);
+        $data = Arr::get($json, 'data');
+        $this->assertStringContainsString('Subdirectory view content', $data['attributes']['content']);
+
+        unlink($subDir.'/sub-view.log');
+        rmdir($subDir);
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_download_subdirectory_logfile()
+    {
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        $subDir = $logDir.'/subdir';
+
+        if (! is_dir($subDir)) {
+            mkdir($subDir, 0777, true);
+        }
+
+        file_put_contents($subDir.'/sub-download.log', 'Subdirectory download content');
+
+        $encodedId = $this->encodeId('subdir/sub-download.log');
+
+        $response = $this->send(
+            $this->request('GET', "/api/logs/download/$encodedId", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertStringContainsString('Subdirectory download content', $response->getBody()->getContents());
+
+        unlink($subDir.'/sub-download.log');
+        rmdir($subDir);
+    }
+
+    /**
+     * @test
+     */
+    public function authorized_user_can_delete_subdirectory_logfile()
+    {
+        $paths = $this->app()->getContainer()->make('flarum.paths');
+        $logDir = $paths->storage.'/logs';
+        $subDir = $logDir.'/subdir';
+
+        if (! is_dir($subDir)) {
+            mkdir($subDir, 0777, true);
+        }
+
+        $subFile = $subDir.'/sub-delete.log';
+        file_put_contents($subFile, 'Will be deleted');
+
+        $encodedId = $this->encodeId('subdir/sub-delete.log');
+
+        $response = $this->send(
+            $this->request('DELETE', "/api/logs/$encodedId", [
+                'authenticatedAs' => 3,
+            ])
+        );
+
+        $this->assertEquals(204, $response->getStatusCode());
+        $this->assertFalse(file_exists($subFile));
+
+        if (is_dir($subDir)) {
+            rmdir($subDir);
+        }
     }
 }

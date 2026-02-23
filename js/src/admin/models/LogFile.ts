@@ -5,6 +5,10 @@ export default class LogFile extends Model {
     return Model.attribute<string>('fileName').call(this);
   }
 
+  relativePath() {
+    return Model.attribute<string>('relativePath').call(this);
+  }
+
   fullPath() {
     return Model.attribute<string>('fullPath').call(this);
   }
