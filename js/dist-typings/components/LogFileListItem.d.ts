@@ -12,8 +12,8 @@ export default class LogFileListItem extends Component<LogFileListItemAttrs> {
     loading: boolean;
     oninit(vnode: Mithril.Vnode<LogFileListItemAttrs, this>): void;
     view(): JSX.Element;
-    setFile(fileName: string): void;
-    downloadFile(fileName: string): void;
-    deleteFile(fileName: string): void;
+    setFile(relativePath: string): void;
+    downloadFile(relativePath: string): void;
+    deleteFile(relativePath: string): void;
 }
 export {};
