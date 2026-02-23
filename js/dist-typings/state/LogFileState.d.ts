@@ -3,8 +3,8 @@ export default class LogFileState {
     onRefresh: (() => void) | null;
     constructor();
     setRefreshCallback(callback: () => void): void;
-    loadLogFile(filename: string): void;
+    loadLogFile(relativePath: string): void;
     getFile(): any;
-    downloadFile(filename: string): void;
-    deleteFile(filename: string): Promise<void>;
+    downloadFile(relativePath: string): void;
+    deleteFile(relativePath: string): Promise<void>;
 }
