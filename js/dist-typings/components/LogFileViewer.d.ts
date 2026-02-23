@@ -6,7 +6,11 @@ interface LogFileViewerAttrs extends ComponentAttrs {
 }
 export default class LogFileViewer extends Component<LogFileViewerAttrs> {
     logState: LogFileState;
+    preEl: HTMLPreElement | null;
+    renderedPath: string | null;
     oninit(vnode: Mithril.Vnode<LogFileViewerAttrs, this>): void;
     view(): JSX.Element;
+    scrollToBottom(): void;
+    scrollToTop(): void;
 }
 export {};

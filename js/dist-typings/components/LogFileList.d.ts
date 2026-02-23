@@ -11,8 +11,6 @@ export default class LogFileList extends Component<LogFileListAttrs> {
     logState: LogFileState;
     oninit(vnode: Mithril.Vnode<LogFileListAttrs, this>): void;
     view(): JSX.Element;
-    refresh(clear?: boolean): Promise<any>;
-    loadResults(): Promise<import("flarum/common/Store").ApiResponseSingle<import("flarum/common/Model").default>>;
-    parseResults(results: any): any;
+    refresh(): Promise<void>;
 }
 export {};
