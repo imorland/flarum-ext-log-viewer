@@ -12,15 +12,13 @@
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
-use Illuminate\Support\Str;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 class LogFile
 {
-    public $id;
-
     public $fileName;
+
+    public $relativePath;
 
     public $fullPath;
 
@@ -34,8 +32,8 @@ class LogFile
     {
         $logFile = new self();
 
-        $logFile->id = Str::slug($file->getFilename());
         $logFile->fileName = $file->getFilename();
+        $logFile->relativePath = $file->getRelativePathname();
         $logFile->fullPath = $file->getRealPath();
         $logFile->size = $file->getSize();
         $logFile->modified = Carbon::createFromTimestamp($file->getMTime());
@@ -50,22 +48,28 @@ class LogFile
         return $logFile;
     }
 
-    public static function find(string $fileName, string $path, bool $withContent = false): self
+    public static function find(string $relativePath, string $logDir, bool $withContent = false): self
     {
-        /** @var Finder $finder */
-        $finder = resolve(Finder::class);
-        $finder->files()
-            ->in($path)
-            ->name($fileName);
+        $realLogDir = realpath($logDir);
 
-        if (! $finder->hasResults()) {
+        if (! $realLogDir) {
+            throw new \RuntimeException('Log directory not found.');
+        }
+
+        $fullPath = realpath($realLogDir.DIRECTORY_SEPARATOR.$relativePath);
+
+        // Security check: ensure the file is within the log directory
+        if (! $fullPath || strpos($fullPath, $realLogDir.DIRECTORY_SEPARATOR) !== 0) {
             throw new \RuntimeException('Log file not found.');
         }
 
-        foreach ($finder as $file) {
-            return self::build($file, $withContent);
+        if (! is_file($fullPath)) {
+            throw new \RuntimeException('Log file not found.');
         }
 
-        throw new \RuntimeException('Log file not found.');
+        $relDir = ltrim(str_replace($realLogDir, '', dirname($fullPath)), DIRECTORY_SEPARATOR);
+        $file = new SplFileInfo($fullPath, $relDir, $relativePath);
+
+        return self::build($file, $withContent);
     }
 }

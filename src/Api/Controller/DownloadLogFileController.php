@@ -38,38 +38,44 @@ class DownloadLogFileController implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        RequestUtil::getActor($request)->assertCan('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('manageLogfiles');
 
-        $fileName = Arr::get($request->getQueryParams(), 'file');
+        $encodedId = Arr::get($request->getQueryParams(), 'file');
 
-        if (! $fileName) {
+        if (! $encodedId) {
             throw new RouteNotFoundException();
         }
 
-        // Sanitize the filename to prevent directory traversal
-        $fileName = basename($fileName);
+        $relativePath = base64_decode(strtr($encodedId, '-_', '+/'));
+
+        if ($relativePath === '') {
+            throw new RouteNotFoundException();
+        }
 
         $logDir = $this->getLogDirectory($this->paths);
-        $filePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
+        $realLogDir = realpath($logDir);
 
-        if (! file_exists($filePath) || ! is_file($filePath)) {
+        if (! $realLogDir) {
             throw new RouteNotFoundException();
         }
+
+        $realFilePath = realpath($realLogDir.DIRECTORY_SEPARATOR.$relativePath);
 
         // Security check: ensure the file is within the log directory
-        $realLogDir = realpath($logDir);
-        $realFilePath = realpath($filePath);
-
-        if (! $realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
+        if (! $realFilePath || strpos($realFilePath, $realLogDir.DIRECTORY_SEPARATOR) !== 0) {
             throw new RouteNotFoundException();
         }
 
-        $stream = new Stream($filePath, 'r');
-        $fileSize = filesize($filePath);
+        if (! is_file($realFilePath)) {
+            throw new RouteNotFoundException();
+        }
+
+        $stream = new Stream($realFilePath, 'r');
+        $fileSize = filesize($realFilePath);
 
         $headers = [
             'Content-Type' => 'application/octet-stream',
-            'Content-Disposition' => 'attachment; filename="'.basename($fileName).'"',
+            'Content-Disposition' => 'attachment; filename="'.basename($realFilePath).'"',
         ];
 
         if ($fileSize !== false) {

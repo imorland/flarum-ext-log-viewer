@@ -40,15 +40,26 @@ class ShowLogFileController extends AbstractShowController
 
     protected function data(ServerRequestInterface $request, Document $document)
     {
-        $fileName = Arr::get($request->getQueryParams(), 'file');
-        RequestUtil::getActor($request)->assertCan('readLogfiles');
+        RequestUtil::getActor($request)->assertCan('manageLogfiles');
 
-        $logDir = $this->getLogDirectory($this->paths);
+        $encodedId = Arr::get($request->getQueryParams(), 'file');
 
-        if (! file_exists($logDir.DIRECTORY_SEPARATOR.$fileName)) {
+        if (! $encodedId) {
             throw new RouteNotFoundException();
         }
 
-        return LogFile::find($fileName, $logDir, true);
+        $relativePath = base64_decode(strtr($encodedId, '-_', '+/'));
+
+        if ($relativePath === '') {
+            throw new RouteNotFoundException();
+        }
+
+        $logDir = $this->getLogDirectory($this->paths);
+
+        try {
+            return LogFile::find($relativePath, $logDir, true);
+        } catch (\RuntimeException $e) {
+            throw new RouteNotFoundException();
+        }
     }
 }

@@ -84,7 +84,7 @@ class SplitLargeLogfilesCommand extends Command
         $finder = new Finder();
         $finder->files()
             ->in($this->getLogDirectory($this->paths))
-            ->size('>'.$maxFileSize);
+            ->size('> '.$maxFileSize);
 
         return $finder;
     }
@@ -104,25 +104,53 @@ class SplitLargeLogfilesCommand extends Command
         $baseNameWithoutExtension = pathinfo($file->getBasename(), PATHINFO_FILENAME);
         $extension = pathinfo($file->getBasename(), PATHINFO_EXTENSION);
 
-        // Determine the starting part number
-        $existingParts = preg_match('/-part(\\d+)$/', $baseNameWithoutExtension, $matches);
-        $partNumber = $existingParts ? (int) $matches[1] + 1 : 1;
+        // Strip any existing -partN suffix to avoid compounding names on re-split
+        $hadPartSuffix = false;
+        if (preg_match('/^(.*)-part(\d+)$/', $baseNameWithoutExtension, $matches)) {
+            $baseNameWithoutExtension = $matches[1];
+            $hadPartSuffix = true;
+        }
 
-        // Open the original file for reading
-        $handle = fopen($originalFilePath, 'rb');
+        // If the original filename would collide with chunk 1 (e.g. re-splitting largeTest-part1.log),
+        // rename the original to a temporary name first so reads and writes don't interfere.
+        // Use dirname($originalFilePath) to get the absolute directory, not $file->getPath() which is relative.
+        $readPath = $originalFilePath;
+        $tempPath = null;
+        if ($hadPartSuffix) {
+            $firstChunkPath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
+            if ($firstChunkPath === $originalFilePath) {
+                $tempPath = $originalFilePath.'.splitting';
+                if (! rename($originalFilePath, $tempPath)) {
+                    $this->error('Error renaming file for splitting: '.$originalFilePath);
+
+                    return;
+                }
+                $readPath = $tempPath;
+            }
+        }
+
+        // Open the file for reading
+        $handle = fopen($readPath, 'rb');
         if (! $handle) {
-            $this->error('Error opening file: '.$originalFilePath);
+            $this->error('Error opening file: '.$readPath);
+            if ($tempPath) {
+                rename($tempPath, $originalFilePath);
+            }
 
             return;
         }
 
-        $partFiles = [];
+        $partNumber = 1;
+        $partsWritten = 0;
         while (! feof($handle)) {
-            $filename = $baseNameWithoutExtension.'-part'.$partNumber.'.'.$extension;
-            $filePath = $file->getPath().DIRECTORY_SEPARATOR.$filename;
-
-            // Read a chunk of the file
             $chunk = fread($handle, $maxFileSize);
+
+            if ($chunk === false || strlen($chunk) === 0) {
+                break;
+            }
+
+            $filename = $baseNameWithoutExtension.'-part'.$partNumber.'.'.$extension;
+            $filePath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$filename;
 
             // Write the chunk to a new part file
             if (file_put_contents($filePath, $chunk) === false) {
@@ -132,21 +160,29 @@ class SplitLargeLogfilesCommand extends Command
                 return;
             }
 
-            $partFiles[] = $filePath;
+            $partsWritten++;
             $partNumber++;
         }
 
-        // Close the original file handle
+        // Close the file handle
         fclose($handle);
 
-        // Rename the original file to become the last part (if there are multiple parts)
-        if (count($partFiles) > 1) {
-            $lastPartFileName = $baseNameWithoutExtension.'-part'.($partNumber - 1).'.'.$extension;
-            $lastPartFilePath = $file->getPath().DIRECTORY_SEPARATOR.$lastPartFileName;
-            rename($originalFilePath, $lastPartFilePath);
+        if ($partsWritten > 1) {
+            // All chunks were written to numbered part files; delete the source
+            unlink($readPath);
         } else {
-            // If there's only one part, delete the split file and keep the original
-            unlink($partFiles[0]);
+            // Only one chunk — no real split happened; remove the single part file
+            // and restore the original name if we had renamed it
+            $singlePartPath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
+            if ($tempPath) {
+                // Restore original name; singlePartPath may or may not exist
+                if (file_exists($singlePartPath) && $singlePartPath !== $originalFilePath) {
+                    @unlink($singlePartPath);
+                }
+                rename($tempPath, $originalFilePath);
+            } else {
+                @unlink($singlePartPath);
+            }
         }
     }
 }

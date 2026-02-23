@@ -47,7 +47,7 @@ export default class LogFileList extends Component {
   }
 
   parseResults(results) {
-    this.files.push(...results);
+    this.files = results;
 
     this.loading = false;
 
