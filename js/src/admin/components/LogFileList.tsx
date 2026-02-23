@@ -34,6 +34,14 @@ export default class LogFileList extends Component<LogFileListAttrs> {
       return <LoadingIndicator />;
     }
 
+    if (!this.files.length) {
+      return (
+        <div className="LogViewerPage--emptyList">
+          <p>{app.translator.trans('ianm-log-viewer.admin.viewer.no_log_files')}</p>
+        </div>
+      );
+    }
+
     return (
       <div className="LogViewerPage--fileListItems">
         {this.files.map((file) => {
@@ -43,25 +51,26 @@ export default class LogFileList extends Component<LogFileListAttrs> {
     );
   }
 
-  refresh(clear: boolean = true) {
-    if (clear) {
-      this.loading = true;
-      this.files = [];
-    }
-
-    return this.loadResults().then(this.parseResults.bind(this));
-  }
-
-  loadResults() {
-    return app.store.find('logs');
-  }
-
-  parseResults(results: any) {
-    this.files = Array.isArray(results) ? results : [results];
-
-    this.loading = false;
-
+  refresh() {
+    this.loading = true;
+    this.files = [];
     m.redraw();
-    return results;
+
+    return app
+      .request<{ data: any[] }>({
+        method: 'GET',
+        url: app.forum.attribute('apiUrl') + '/logs',
+      })
+      .then((result) => {
+        // Deserialise each item into a LogFile model instance via the store
+        const items = Array.isArray(result.data) ? result.data : [result.data];
+        this.files = items.map((item) => app.store.pushObject(item) as LogFile);
+        this.loading = false;
+        m.redraw();
+      })
+      .catch(() => {
+        this.loading = false;
+        m.redraw();
+      });
   }
 }
