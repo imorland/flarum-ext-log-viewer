@@ -1,7 +1,7 @@
 ianm-log-viewer:
   admin:
     permissions:
-      access_logfile_api: Access logfile data via the API
+      access_logfile_api: View and manage logfiles
     settings:
       max-file-size: Maximum Log File Size (MB)
       max-file-size-help: If a log file exceeds this size, it will be split into multiple parts. Set to 0 to disable splitting. Default is 1MB. Maximum allowable size is 150MB.

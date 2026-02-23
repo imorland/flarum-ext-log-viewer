@@ -12,15 +12,15 @@
 namespace IanM\LogViewer\Model;
 
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 class LogFile
 {
-    public string $id;
-
     public string $fileName;
+
+    /** Relative path from the log directory root, e.g. "composer/output-2024-11-16.log". */
+    public string $relativePath;
 
     public string $fullPath;
 
@@ -30,12 +30,14 @@ class LogFile
 
     public ?string $content = null;
 
-    public static function build(SplFileInfo $file, bool $withContent = false): self
+    public static function build(SplFileInfo $file, bool $withContent = false, string $logDir = ''): self
     {
         $logFile = new self();
 
-        $logFile->id = Str::slug($file->getFilename());
         $logFile->fileName = $file->getFilename();
+        $logFile->relativePath = $logDir
+            ? ltrim(str_replace($logDir, '', $file->getRealPath()), DIRECTORY_SEPARATOR)
+            : $file->getRelativePathname();
         $logFile->fullPath = $file->getRealPath();
         $logFile->size = $file->getSize();
         $logFile->modified = Carbon::createFromTimestamp($file->getMTime());
@@ -50,22 +52,23 @@ class LogFile
         return $logFile;
     }
 
-    public static function find(string $fileName, string $path, bool $withContent = false): self
+    public static function find(string $relativePath, string $logDir, bool $withContent = false): self
     {
-        /** @var Finder $finder */
-        $finder = resolve(Finder::class);
-        $finder->files()
-            ->in($path)
-            ->name($fileName);
+        // Resolve the full path directly — no need to scan the directory.
+        $fullPath = realpath($logDir.DIRECTORY_SEPARATOR.$relativePath);
 
-        if (! $finder->hasResults()) {
+        if (! $fullPath || ! is_file($fullPath)) {
             throw new \RuntimeException('Log file not found.');
         }
 
-        foreach ($finder as $file) {
-            return self::build($file, $withContent);
+        // Security: ensure the resolved path is still inside the log directory.
+        $realLogDir = realpath($logDir);
+        if (! $realLogDir || ! str_starts_with($fullPath, $realLogDir.DIRECTORY_SEPARATOR)) {
+            throw new \RuntimeException('Log file not found.');
         }
 
-        throw new \RuntimeException('Log file not found.');
+        $file = new SplFileInfo($fullPath, dirname($relativePath), $relativePath);
+
+        return self::build($file, $withContent, $realLogDir);
     }
 }

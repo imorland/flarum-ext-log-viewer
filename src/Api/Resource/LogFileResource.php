@@ -48,21 +48,26 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
 
     public function getId(object $model, \Tobyz\JsonApiServer\Context $context): string
     {
-        // Use the actual filename as the ID for API compatibility
-        return $model->fileName;
+        // Encode the relative path as base64url (RFC 4648 §5) so that paths
+        // containing '/' are safe to embed as a single URL path segment.
+        return rtrim(strtr(base64_encode($model->relativePath), '+/', '-_'), '=');
+    }
+
+    /** Decode a base64url ID back to a relative path. */
+    private function decodeId(string $id): string
+    {
+        return base64_decode(strtr($id, '-_', '+/'));
     }
 
     public function find(string $id, \Tobyz\JsonApiServer\Context $context): ?object
     {
         /** @var Context $context */
-        $context->getActor()->assertCan('readLogfiles');
+        $context->getActor()->assertCan('manageLogfiles');
 
         $logDir = $this->getLogDirectory($this->paths);
 
-        // The ID is the actual filename
-        // Load with content for show endpoint
         try {
-            return LogFile::find($id, $logDir, true);
+            return LogFile::find($this->decodeId($id), $logDir, true);
         } catch (\RuntimeException) {
             return null;
         }
@@ -73,18 +78,18 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
         return [
             Endpoint\Index::make()
                 ->authenticated()
-                ->can('readLogfiles'),
+                ->can('manageLogfiles'),
 
             Endpoint\Show::make()
                 ->authenticated()
                 ->before(function (Context $context) {
-                    $context->getActor()->assertCan('readLogfiles');
+                    $context->getActor()->assertCan('manageLogfiles');
                 }),
 
             Endpoint\Delete::make()
                 ->authenticated()
                 ->before(function (Context $context) {
-                    $context->getActor()->assertCan('readLogfiles');
+                    $context->getActor()->assertCan('manageLogfiles');
                 }),
 
             // Custom download endpoint matching old route pattern
@@ -92,35 +97,30 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
                 ->route('GET', '/download/{id}')
                 ->authenticated()
                 ->before(function (Context $context) {
-                    $context->getActor()->assertCan('readLogfiles');
+                    $context->getActor()->assertCan('manageLogfiles');
                 })
                 ->action(function (Context $context) {
-                    // Extract filename from the route path - it's in the 'id' part of the route
-                    $fileName = $this->id($context);
+                    $encodedId = $this->id($context);
 
-                    if (! $fileName) {
+                    if (! $encodedId) {
                         throw new RouteNotFoundException();
                     }
 
-                    // Sanitize the filename to prevent directory traversal
-                    $fileName = basename($fileName);
-
+                    $relativePath = $this->decodeId($encodedId);
                     $logDir = $this->getLogDirectory($this->paths);
-                    $filePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
+                    $realLogDir = realpath($logDir);
+                    $realFilePath = realpath($logDir.DIRECTORY_SEPARATOR.$relativePath);
 
-                    if (! file_exists($filePath) || ! is_file($filePath)) {
+                    if (! $realFilePath || ! is_file($realFilePath)) {
                         throw new RouteNotFoundException();
                     }
 
                     // Security check: ensure the file is within the log directory
-                    $realLogDir = realpath($logDir);
-                    $realFilePath = realpath($filePath);
-
-                    if (! $realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
+                    if (! $realLogDir || ! str_starts_with($realFilePath, $realLogDir.DIRECTORY_SEPARATOR)) {
                         throw new RouteNotFoundException();
                     }
 
-                    return ['fileName' => $fileName, 'filePath' => $filePath];
+                    return ['fileName' => basename($realFilePath), 'filePath' => $realFilePath];
                 })
                 ->response(function (Context $context, array $data) {
                     $stream = new Stream($data['filePath'], 'r');
@@ -145,6 +145,9 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
         return [
             Schema\Str::make('fileName')
                 ->get(fn (LogFile $logFile) => $logFile->fileName),
+
+            Schema\Str::make('relativePath')
+                ->get(fn (LogFile $logFile) => $logFile->relativePath),
 
             Schema\Str::make('fullPath')
                 ->get(fn (LogFile $logFile) => $logFile->fullPath),
@@ -177,7 +180,7 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
     public function query(\Tobyz\JsonApiServer\Context $context): object
     {
         /** @var Context $context */
-        $context->getActor()->assertCan('readLogfiles');
+        $context->getActor()->assertCan('manageLogfiles');
 
         // Return a simple object containing the query parameters
         return (object) [
@@ -198,9 +201,11 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
         $finder = new Finder();
         $finder->files()->in($logDir);
 
+        $realLogDir = realpath($logDir) ?: $logDir;
+
         foreach ($finder as $file) {
             /** @var \Symfony\Component\Finder\SplFileInfo $file */
-            $logFile = LogFile::build($file, false);
+            $logFile = LogFile::build($file, false, $realLogDir);
             $files->add($logFile);
         }
 
@@ -242,25 +247,21 @@ class LogFileResource extends Resource\AbstractResource implements Findable, Lis
     public function delete(object $model, \Tobyz\JsonApiServer\Context $context): void
     {
         /** @var Context $context */
-        $context->getActor()->assertCan('readLogfiles');
+        $context->getActor()->assertCan('manageLogfiles');
 
-        $fileName = basename($model->fileName);
         $logDir = $this->getLogDirectory($this->paths);
-        $filePath = $logDir.DIRECTORY_SEPARATOR.$fileName;
+        $realLogDir = realpath($logDir);
+        $realFilePath = realpath($logDir.DIRECTORY_SEPARATOR.$model->relativePath);
 
-        if (! file_exists($filePath) || ! is_file($filePath)) {
+        if (! $realFilePath || ! is_file($realFilePath)) {
             throw new RouteNotFoundException();
         }
 
         // Security check: ensure the file is within the log directory
-        $realLogDir = realpath($logDir);
-        $realFilePath = realpath($filePath);
-
-        if (! $realFilePath || strpos($realFilePath, $realLogDir) !== 0) {
+        if (! $realLogDir || ! str_starts_with($realFilePath, $realLogDir.DIRECTORY_SEPARATOR)) {
             throw new RouteNotFoundException();
         }
 
-        // Delete the file
-        unlink($filePath);
+        unlink($realFilePath);
     }
 }

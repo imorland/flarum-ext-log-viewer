@@ -2,43 +2,92 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Latest Stable Version](https://img.shields.io/packagist/v/ianm/log-viewer.svg)](https://packagist.org/packages/ianm/log-viewer) [![Total Downloads](https://img.shields.io/packagist/dt/ianm/log-viewer.svg)](https://packagist.org/packages/ianm/log-viewer)
 
-![](https://extiverse.com/extension/ianm/log-viewer/open-graph-image)
-
 Easily view your Flarum logfiles from within the admin interface.
 
-This utility extension offers access to Flarum's logfiles without the need for command line access to your server. It exposes the contents of files found in the `{flarum_install_dir}/storage/logs` directly to the admin interface, or optionally via the API.
+This extension exposes the contents of files found in `{flarum_install_dir}/storage/logs` (including subdirectories) directly in the admin panel, without needing SSH or command-line access to your server.
 
-This is especially useful if you have either limited knowledge of `SSH` access/commands, or you are using a host where this is simply not permitted. So long as the Flarum `logger` has not been modified to store logs elsewhere (usually only on multi-instance, scalable hosting solutions), then this extension will work for you!
+> **Note:** Be careful when sharing log snippets — they may contain sensitive data such as user details, email addresses, or internal paths.
 
-Need to access the logs in order to troubleshoot a problem you're having with your forum? Simply login as an admin account and look for any trouble signs in the log viewer. Simple, just be sure to review any log snippets you share with others, as they _may_ contain sensitive data.
+## Features
 
-Subject to the Flarum scheduler being active, logfiles are purged from you `log` folder once they are more than 90 days old. A setting is provided to adjust this up/down to suit your requirements. A value of `0` will disable purging.
+- **View** log files in the admin panel, including files in subdirectories (e.g. `composer/`)
+- **Download** any log file directly from the admin panel
+- **Delete** log files from the admin panel
+- **Auto-split** large log files into smaller parts on a daily schedule (configurable, default 1 MB)
+- **Auto-purge** old log files on a daily schedule (configurable, default 90 days)
+- **API access** to list, retrieve, and delete log files from external systems
 
 ## Screenshots
 
 ![log viewer](https://user-images.githubusercontent.com/16573496/200803543-ff6237ac-e029-4563-aa3d-7922e8b47dce.png)
 ![log viewer mobile](https://user-images.githubusercontent.com/16573496/200811821-0712b10b-b3dd-4078-a6cf-43fb4380f5b0.png)
 
-## API Usage
+## Settings
 
-Two API endpoints are provided to enable the logs to be easily extracted from Flarum into another system. Permissions to access these endpoints are provided, and restriced to `admin` users only by default, although you may create a dedicated permission group and apply log access to that group as well for log retrieval without full admin permissions.  **NEVER GRANT LOG ACCESS TO REGULAR USERS**.
+Two settings are available on the extension's settings page:
 
-Permission can be set within the extension page, or the global `Permissions` tab
+| Setting | Default | Description |
+|---|---|---|
+| Maximum Log File Size (MB) | 1 | Files exceeding this size are split into numbered parts daily. Set to `0` to disable splitting. |
+| Purge logfiles after days | 90 | Log files older than this are deleted daily. Set to `0` to disable purging. |
+
+Both features rely on the [Flarum scheduler](https://docs.flarum.org/scheduler) being active.
+
+## Permissions
+
+By default, only admins can access the log viewer. A `View and manage logfiles` permission is provided — you can grant it to a custom group if you need log access without full admin rights.
+
+**Never grant log access to regular users.**
+
+The permission can be set on the extension page or the global Permissions tab.
+
 ![permission](https://user-images.githubusercontent.com/16573496/200804488-ede34025-3ce7-4b74-9bb1-91c0d9b27ee8.png)
 
-Once authenticated, a `GET` request can be made to `/api/logs` to list the available log files.
+## API Usage
 
-To retrieve a particular file, another `GET` request should be made to `/api/logs/{filename}`
+Two API endpoints are provided to enable log retrieval from external systems.
 
-## Future changes/features
+All requests must be authenticated as a user with the `manageLogfiles` permission.
 
-- Add option to download a file from the admin interface
-- Add option to delete a file from the admin interface
-- Add feature to tail new logfile content and stream this into the viewer
+### List log files
+
+```
+GET /api/logs
+```
+
+Returns a list of all log files. Supports sorting via the `sort` query parameter:
+- `-modified` (default) — newest first
+- `modified` — oldest first
+- `fileName`
+- `size`
+
+Each item in the response includes a `relativePath` attribute (e.g. `flarum.log` or `composer/output-2024-11-16.log`) and an `id` field which is the base64url-encoded relative path.
+
+### Retrieve a log file
+
+```
+GET /api/logs/{id}
+```
+
+Returns the file's content. Use the `id` value from the list response.
+
+### Download a log file
+
+```
+GET /api/logs/download/{id}
+```
+
+Returns the raw file as an attachment.
+
+### Delete a log file
+
+```
+DELETE /api/logs/{id}
+```
 
 ## Installation
 
-Install with composer:
+Requires **Flarum 2.x**.
 
 ```sh
 composer require ianm/log-viewer

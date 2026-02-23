@@ -57,7 +57,7 @@ export default class LogFileList extends Component<LogFileListAttrs> {
   }
 
   parseResults(results: any) {
-    this.files.push(...(Array.isArray(results) ? results : [results]));
+    this.files = Array.isArray(results) ? results : [results];
 
     this.loading = false;
 
