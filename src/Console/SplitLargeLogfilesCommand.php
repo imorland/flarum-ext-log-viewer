@@ -113,10 +113,11 @@ class SplitLargeLogfilesCommand extends Command
 
         // If the original filename would collide with chunk 1 (e.g. re-splitting largeTest-part1.log),
         // rename the original to a temporary name first so reads and writes don't interfere.
+        // Use dirname($originalFilePath) to get the absolute directory, not $file->getPath() which is relative.
         $readPath = $originalFilePath;
         $tempPath = null;
         if ($hadPartSuffix) {
-            $firstChunkPath = $file->getPath().DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
+            $firstChunkPath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
             if ($firstChunkPath === $originalFilePath) {
                 $tempPath = $originalFilePath.'.splitting';
                 if (! rename($originalFilePath, $tempPath)) {
@@ -149,7 +150,7 @@ class SplitLargeLogfilesCommand extends Command
             }
 
             $filename = $baseNameWithoutExtension.'-part'.$partNumber.'.'.$extension;
-            $filePath = $file->getPath().DIRECTORY_SEPARATOR.$filename;
+            $filePath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$filename;
 
             // Write the chunk to a new part file
             if (file_put_contents($filePath, $chunk) === false) {
@@ -172,7 +173,7 @@ class SplitLargeLogfilesCommand extends Command
         } else {
             // Only one chunk — no real split happened; remove the single part file
             // and restore the original name if we had renamed it
-            $singlePartPath = $file->getPath().DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
+            $singlePartPath = dirname($originalFilePath).DIRECTORY_SEPARATOR.$baseNameWithoutExtension.'-part1.'.$extension;
             if ($tempPath) {
                 // Restore original name; singlePartPath may or may not exist
                 if (file_exists($singlePartPath) && $singlePartPath !== $originalFilePath) {
