@@ -1,6 +1,7 @@
 import app from 'flarum/admin/app';
 import Component, { ComponentAttrs } from 'flarum/common/Component';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import Button from 'flarum/common/components/Button';
 import type Mithril from 'mithril';
 import LogFileListItem from './LogFileListItem';
 import LogFileState from '../state/LogFileState';
@@ -20,7 +21,16 @@ export default class LogFileList extends Component<LogFileListAttrs> {
     const state = this.attrs.state;
 
     if (!state.listLoaded) {
-      return <LoadingIndicator />;
+      if (state.listLoading) return <LoadingIndicator />;
+
+      return (
+        <div className="LogViewerPage--emptyList">
+          <p>{app.translator.trans('ianm-log-viewer.admin.viewer.list_failed')}</p>
+          <Button className="Button" icon="fas fa-redo" onclick={() => state.refreshList()}>
+            {app.translator.trans('ianm-log-viewer.admin.viewer.retry')}
+          </Button>
+        </div>
+      );
     }
 
     if (!state.files.length) {

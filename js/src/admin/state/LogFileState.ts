@@ -13,6 +13,8 @@ export default class LogFileState {
   files: LogFile[] = [];
   listLoading: boolean = false;
   listLoaded: boolean = false;
+  /** Numbers each list request, so an answer overtaken by a later refresh is dropped. */
+  protected listRequest: number = 0;
   /** Where the open file was scrolled to, so leaving the Logs tab and coming back keeps the reader's place. */
   scrollTop: number | null = null;
 
@@ -25,7 +27,13 @@ export default class LogFileState {
     if (!this.listLoaded && !this.listLoading) this.refreshList();
   }
 
-  refreshList() {
+  /**
+   * Never rejects: a failed request has already shown Flarum's error alert, and
+   * leaves `listLoaded` false so the list can be loaded again.
+   */
+  refreshList(): Promise<void> {
+    const request = ++this.listRequest;
+
     this.listLoading = true;
     m.redraw();
 
@@ -35,12 +43,17 @@ export default class LogFileState {
         url: app.forum.attribute('apiUrl') + '/logs',
       })
       .then((result) => {
+        if (request !== this.listRequest) return;
+
         const items = Array.isArray(result.data) ? result.data : [result.data];
         this.files = items.map((item) => app.store.pushObject(item) as LogFile);
-      })
-      .finally(() => {
-        this.listLoading = false;
         this.listLoaded = true;
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (request !== this.listRequest) return;
+
+        this.listLoading = false;
         m.redraw();
       });
   }
@@ -94,6 +107,8 @@ export default class LogFileState {
         if (this.file && this.file.data.attributes.relativePath === relativePath) {
           this.file = null;
         }
+
+        this.files = this.files.filter((file) => file.relativePath() !== relativePath);
 
         return this.refreshList();
       });
