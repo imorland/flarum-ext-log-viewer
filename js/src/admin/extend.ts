@@ -8,13 +8,36 @@ export default [
     .add('logs', LogFile),
 
   new Extend.Admin() //
+    .page(LogViewerPage)
+    .tab(() => ({
+      id: 'settings',
+      label: app.translator.trans('ianm-log-viewer.admin.tabs.settings'),
+      icon: 'fas fa-sliders-h',
+    }))
+    .setting(() => ({
+      setting: 'ianm-log-viewer.purge-days',
+      type: 'number',
+      min: 0,
+      max: 365,
+      required: true,
+      label: app.translator.trans('ianm-log-viewer.admin.settings.purge-days'),
+      help: app.translator.trans('ianm-log-viewer.admin.settings.purge-days-help'),
+    }))
+    .setting(() => ({
+      setting: 'ianm-log-viewer.max-file-size',
+      type: 'number',
+      min: 0,
+      max: 100,
+      required: true,
+      label: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size'),
+      help: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size-help'),
+    }))
     .permission(
       () => ({
         icon: 'far fa-file-alt',
         label: app.translator.trans('ianm-log-viewer.admin.permissions.access_logfile_api'),
         permission: 'manageLogfiles',
       }),
-      'view'
-    )
-    .page(LogViewerPage),
+      'moderate'
+    ),
 ];

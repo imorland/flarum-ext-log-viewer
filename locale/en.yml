@@ -7,6 +7,9 @@ ianm-log-viewer:
       max-file-size-help: If a log file exceeds this size, it will be split into multiple parts. Set to 0 to disable splitting. Default is 1MB. Maximum allowable size is 150MB.
       purge-days: Purge logfiles after days
       purge-days-help: Relies on the Flarum scheduler being active. 0 for disabled.
+    tabs:
+      logs: Logs
+      settings: Settings
     viewer:
       available_logs_heading: Available files
       file_contents_heading: File contents

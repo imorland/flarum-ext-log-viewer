@@ -19,7 +19,7 @@
 
   .LogFile-item {
     &:not(:last-child) {
-      margin-right: 4px;
+      margin-inline-end: 4px;
     }
   }
 
@@ -138,7 +138,7 @@
 
     .LogFile-item {
       &:not(:last-child) {
-        margin-right: 0;
+        margin-inline-end: 0;
         margin-bottom: 4px;
       }
     }
@@ -218,13 +218,16 @@
       overflow: auto;
       white-space: pre-wrap;
       word-break: break-all;
+      // Log lines are machine output, so they read left to right on RTL forums too.
+      direction: ltr;
+      text-align: left;
     }
   }
 
   .LogViewerPage--fileActions {
     position: absolute;
     bottom: 12px;
-    right: 12px;
+    inset-inline-end: 12px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -249,10 +252,4 @@
       }
     }
   }
-}
-
-.LogViewerPage-settings {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--control-bg);
 }
