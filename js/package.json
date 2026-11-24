@@ -10,7 +10,7 @@
     "@flarum/prettier-config": "^1.0.0",
     "flarum-tsconfig": "^2.0.0",
     "typescript": "^5.9.3",
-    "typescript-coverage-report": "^0.6.1"
+    "typescript-coverage-report": "^0.6.4"
   },
   "scripts": {
     "dev": "webpack --mode development --watch",
