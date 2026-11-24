@@ -27,7 +27,7 @@ export default [
       setting: 'ianm-log-viewer.max-file-size',
       type: 'number',
       min: 0,
-      max: 100,
+      max: 150,
       required: true,
       label: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size'),
       help: app.translator.trans('ianm-log-viewer.admin.settings.max-file-size-help'),

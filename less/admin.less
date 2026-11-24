@@ -210,6 +210,9 @@
 
   .LogViewerPage--fileContent {
     overflow: hidden;
+    // Log lines are machine output, so the viewer and its scroll buttons stay left to right on RTL forums too.
+    direction: ltr;
+    text-align: left;
 
     pre {
       margin: 0;
@@ -218,9 +221,6 @@
       overflow: auto;
       white-space: pre-wrap;
       word-break: break-all;
-      // Log lines are machine output, so they read left to right on RTL forums too.
-      direction: ltr;
-      text-align: left;
     }
   }
 

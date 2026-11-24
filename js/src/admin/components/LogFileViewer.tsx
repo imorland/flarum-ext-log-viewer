@@ -62,7 +62,13 @@ export default class LogFileViewer extends Component<LogFileViewerAttrs> {
           oncreate={(vnode: Mithril.VnodeDOM<{}, {}>) => {
             this.preEl = vnode.dom as HTMLPreElement;
             this.renderedPath = currentPath;
-            this.scrollToBottom();
+
+            if (this.logState.scrollTop === null) this.scrollToBottom();
+            else this.preEl.scrollTop = this.logState.scrollTop;
+          }}
+          onscroll={(e: Event) => {
+            this.logState.scrollTop = (e.target as HTMLPreElement).scrollTop;
+            (e as Event & { redraw?: boolean }).redraw = false;
           }}
           onupdate={() => {
             if (this.renderedPath !== currentPath) {
