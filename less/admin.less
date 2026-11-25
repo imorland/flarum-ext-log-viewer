@@ -18,6 +18,9 @@
   }
 
   .LogFile-item {
+    // Below desktop the list is a horizontally scrolling row, so cards keep a usable width.
+    flex: 0 0 ~"min(240px, 80%)";
+
     &:not(:last-child) {
       margin-inline-end: 4px;
     }
@@ -70,7 +73,7 @@
       align-items: flex-start;
       gap: 6px;
       font-weight: 600;
-      word-break: break-all;
+      overflow-wrap: anywhere;
 
       .icon {
         flex-shrink: 0;
@@ -104,6 +107,7 @@
       font-size: 11px;
       color: var(--muted-color);
       margin-top: 3px;
+      white-space: nowrap;
 
       .fileDot {
         opacity: 0.5;
@@ -137,6 +141,8 @@
     }
 
     .LogFile-item {
+      flex: none;
+
       &:not(:last-child) {
         margin-inline-end: 0;
         margin-bottom: 4px;
