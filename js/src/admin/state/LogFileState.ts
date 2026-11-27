@@ -1,4 +1,5 @@
 import app from 'flarum/admin/app';
+import type LogFile from '../models/LogFile';
 
 // Encode a relative path as URL-safe base64 (base64url, RFC 4648 §5) so that
 // paths containing '/' are safe to embed as a single URL path segment.
@@ -9,16 +10,52 @@ function encodeId(relativePath: string): string {
 export default class LogFileState {
   file: any;
   loading: boolean;
-  onRefresh: (() => void) | null;
+  files: LogFile[] = [];
+  listLoading: boolean = false;
+  listLoaded: boolean = false;
+  /** Numbers each list request, so an answer overtaken by a later refresh is dropped. */
+  protected listRequest: number = 0;
+  /** Where the open file was scrolled to, so leaving the Logs tab and coming back keeps the reader's place. */
+  scrollTop: number | null = null;
 
   constructor() {
     this.file = null;
     this.loading = false;
-    this.onRefresh = null;
   }
 
-  setRefreshCallback(callback: () => void) {
-    this.onRefresh = callback;
+  loadList() {
+    if (!this.listLoaded && !this.listLoading) this.refreshList();
+  }
+
+  /**
+   * Never rejects: a failed request has already shown Flarum's error alert, and
+   * leaves `listLoaded` false so the list can be loaded again.
+   */
+  refreshList(): Promise<void> {
+    const request = ++this.listRequest;
+
+    this.listLoading = true;
+    m.redraw();
+
+    return app
+      .request<{ data: any[] }>({
+        method: 'GET',
+        url: app.forum.attribute('apiUrl') + '/logs',
+      })
+      .then((result) => {
+        if (request !== this.listRequest) return;
+
+        const items = Array.isArray(result.data) ? result.data : [result.data];
+        this.files = items.map((item) => app.store.pushObject(item) as LogFile);
+        this.listLoaded = true;
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (request !== this.listRequest) return;
+
+        this.listLoading = false;
+        m.redraw();
+      });
   }
 
   loadLogFile(relativePath: string) {
@@ -32,6 +69,7 @@ export default class LogFileState {
       })
       .then((result) => {
         this.file = result;
+        this.scrollTop = null;
         this.loading = false;
         m.redraw();
       })
@@ -70,12 +108,9 @@ export default class LogFileState {
           this.file = null;
         }
 
-        // Refresh the file list
-        if (this.onRefresh) {
-          this.onRefresh();
-        }
+        this.files = this.files.filter((file) => file.relativePath() !== relativePath);
 
-        m.redraw();
+        return this.refreshList();
       });
   }
 }

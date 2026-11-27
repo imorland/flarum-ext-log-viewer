@@ -24,6 +24,12 @@ return [
 
     new Extend\ApiResource(Api\Resource\LogFileResource::class),
 
+    // Raw log contents and server paths must not reach third-party assistants.
+    (new Extend\Conditional())
+        ->whenExtensionEnabled('flarum-mcp', fn () => [
+            (new \Flarum\Mcp\Extend\Mcp())->hide('logs'),
+        ]),
+
     (new Extend\Settings())
         ->default('ianm-log-viewer.purge-days', 90)
         ->default('ianm-log-viewer.max-file-size', 1),

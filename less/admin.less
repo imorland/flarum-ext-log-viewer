@@ -18,8 +18,11 @@
   }
 
   .LogFile-item {
+    // Below desktop the list is a horizontally scrolling row, so cards keep a usable width.
+    flex: 0 0 ~"min(240px, 80%)";
+
     &:not(:last-child) {
-      margin-right: 4px;
+      margin-inline-end: 4px;
     }
   }
 
@@ -70,7 +73,7 @@
       align-items: flex-start;
       gap: 6px;
       font-weight: 600;
-      word-break: break-all;
+      overflow-wrap: anywhere;
 
       .icon {
         flex-shrink: 0;
@@ -104,6 +107,7 @@
       font-size: 11px;
       color: var(--muted-color);
       margin-top: 3px;
+      white-space: nowrap;
 
       .fileDot {
         opacity: 0.5;
@@ -137,8 +141,10 @@
     }
 
     .LogFile-item {
+      flex: none;
+
       &:not(:last-child) {
-        margin-right: 0;
+        margin-inline-end: 0;
         margin-bottom: 4px;
       }
     }
@@ -210,6 +216,9 @@
 
   .LogViewerPage--fileContent {
     overflow: hidden;
+    // Log lines are machine output, so the viewer and its scroll buttons stay left to right on RTL forums too.
+    direction: ltr;
+    text-align: left;
 
     pre {
       margin: 0;
@@ -224,7 +233,7 @@
   .LogViewerPage--fileActions {
     position: absolute;
     bottom: 12px;
-    right: 12px;
+    inset-inline-end: 12px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -249,10 +258,4 @@
       }
     }
   }
-}
-
-.LogViewerPage-settings {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--control-bg);
 }

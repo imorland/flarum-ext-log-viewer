@@ -93,9 +93,12 @@ export default class LogFileListItem extends Component<LogFileListItemAttrs> {
 
   deleteFile(relativePath: string) {
     this.loading = true;
-    this.logState.deleteFile(relativePath).then(() => {
-      this.loading = false;
-      m.redraw();
-    });
+    this.logState
+      .deleteFile(relativePath)
+      .catch(() => {})
+      .finally(() => {
+        this.loading = false;
+        m.redraw();
+      });
   }
 }
